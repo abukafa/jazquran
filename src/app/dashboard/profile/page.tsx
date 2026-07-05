@@ -225,7 +225,7 @@ export default function ProfilePage() {
           Aplikasi
         </h4>
         {isInstallable && (
-          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center">
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center mb-6">
             <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
               <i className="fa-solid fa-download"></i>
             </div>
@@ -245,7 +245,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center mt-6">
+        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center">
           <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
             <i className="fa-solid fa-heart"></i>
           </div>

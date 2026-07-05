@@ -6,6 +6,7 @@ import { User } from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
+import mongoose from "mongoose";
 
 function generateCode(name: string) {
   const prefix = name
@@ -128,7 +129,7 @@ export async function updateUserRole(
 
     const updateData: any = { role: newRole };
     if (newTenantId && newTenantId !== "none") {
-      updateData.tenantId = newTenantId;
+      updateData.tenantId = new mongoose.Types.ObjectId(newTenantId);
     } else if (newTenantId === "none") {
       updateData.$unset = { tenantId: 1 };
     }

@@ -41,31 +41,34 @@ export const authOptions: NextAuthOptions = {
       return false;
     },
     async jwt({ token, user, trigger, session }) {
-      if (user) {
+      if (user || trigger === "update") {
         await dbConnect();
-        const dbUser = await User.findOne({ email: user.email }).populate("tenantId");
-        if (dbUser) {
-          token.id = dbUser._id.toString();
-          token.role = dbUser.role;
-          token.picture = dbUser.avatar; // Pass avatar to token
-          
-          if (dbUser.tenantId) {
-             token.tenantId = dbUser.tenantId._id.toString();
-             token.tenantName = dbUser.tenantId.name;
-             token.tenantCode = dbUser.tenantId.code;
-             // Ambil period untuk hero banner di dashboard
-             token.tenantPeriod = dbUser.tenantId.setting?.period || "Semester Berjalan";
+        // Gunakan token.email karena object 'user' hanya ada saat pertama kali sign-in
+        const userEmail = user?.email || token?.email;
+        if (userEmail) {
+          const dbUser = await User.findOne({ email: userEmail }).populate("tenantId");
+          if (dbUser) {
+            token.id = dbUser._id.toString();
+            token.role = dbUser.role;
+            token.picture = dbUser.avatar; // Pass avatar to token
+            
+            if (dbUser.tenantId) {
+               token.tenantId = dbUser.tenantId._id.toString();
+               token.tenantName = dbUser.tenantId.name;
+               token.tenantCode = dbUser.tenantId.code;
+               token.tenantPeriod = dbUser.tenantId.setting?.period || "Semester Berjalan";
+            }
           }
         }
       }
       
-      // Update session manually
+      // Update session manually jika diperlukan
       if (trigger === "update" && session) {
-        token.tenantId = session.tenantId;
-        token.tenantName = session.tenantName;
-        token.tenantCode = session.tenantCode;
-        token.role = session.role;
-        token.tenantPeriod = session.tenantPeriod;
+        if (session.tenantId) token.tenantId = session.tenantId;
+        if (session.tenantName) token.tenantName = session.tenantName;
+        if (session.tenantCode) token.tenantCode = session.tenantCode;
+        if (session.role) token.role = session.role;
+        if (session.tenantPeriod) token.tenantPeriod = session.tenantPeriod;
       }
       
       return token;
