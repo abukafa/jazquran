@@ -220,11 +220,11 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {isInstallable && (
-        <div className="space-y-3">
-          <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
-            Aplikasi
-          </h4>
+      <div className="space-y-3">
+        <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+          Aplikasi
+        </h4>
+        {isInstallable && (
           <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center">
             <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
               <i className="fa-solid fa-download"></i>
@@ -243,11 +243,9 @@ export default function ProfilePage() {
               <i className="fa-solid fa-mobile-screen"></i> Instal Aplikasi
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="space-y-3">
-        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center">
+        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center mt-6">
           <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
             <i className="fa-solid fa-heart"></i>
           </div>
