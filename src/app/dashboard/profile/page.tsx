@@ -246,6 +246,29 @@ export default function ProfilePage() {
         </div>
       )}
 
+      <div className="space-y-3">
+        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center">
+          <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+            <i className="fa-solid fa-heart"></i>
+          </div>
+          <h3 className="text-sm font-bold text-slate-800 mb-1">
+            Dukung Pengembangan
+          </h3>
+          <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+            Bantu kami untuk terus mengembangkan agar aplikasi JazQuran tetap
+            gratis bagi semua pengguna.
+          </p>
+          <a
+            href="https://trakteer.id/abukafa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-xl text-xs flex justify-center items-center gap-2 transition"
+          >
+            <i className="fa-solid fa-mug-hot"></i> Traktir Cendol
+          </a>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <button
           onClick={handleLogout}

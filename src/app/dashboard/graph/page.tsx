@@ -1,111 +1,165 @@
 "use client";
-import React, { useEffect, useRef } from "react";
-import Chart from "chart.js/auto";
+import React, { useEffect, useState } from "react";
+import { useAppContext } from "@/context/AppContext";
+import { useSession } from "next-auth/react";
+import { Line, Bar, Doughnut } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+import {
+  getMuridAnalytics,
+  getGuruAnalytics,
+  getAdminAnalytics,
+  getSuperAdminAnalytics,
+} from "@/actions/graph";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 export default function GraphPage() {
-  const chartRef1 = useRef<HTMLCanvasElement>(null);
-  const chartRef2 = useRef<HTMLCanvasElement>(null);
-  const chartRef3 = useRef<HTMLCanvasElement>(null);
+  const { state } = useAppContext();
+  const { data: session } = useSession();
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let c1: Chart, c2: Chart, c3: Chart;
+    async function fetchData() {
+      setIsLoading(true);
+      const role = state.currentRole;
+      let res: any = null;
+      
+      const userId = (session?.user as any)?.id;
+      const tenantId = (session?.user as any)?.tenantId;
 
-    if (chartRef1.current) {
-      c1 = new Chart(chartRef1.current, {
-        type: 'line',
-        data: {
-          labels: ['Mg 1', 'Mg 2', 'Mg 3', 'Mg 4'],
-          datasets: [{
-            label: 'Akumulasi Juz',
-            data: [1, 2, 4, 5],
-            borderColor: '#2D7A60',
-            backgroundColor: '#D1E5DB',
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
+      if (role === "super-admin") {
+        res = await getSuperAdminAnalytics();
+      } else if (role === "admin-tenant" && tenantId) {
+        res = await getAdminAnalytics(tenantId);
+      } else if (role === "guru" && userId) {
+        res = await getGuruAnalytics(userId);
+      } else if (role === "murid" && userId) {
+        res = await getMuridAnalytics(userId);
+      }
+      
+      if (res && res.success) {
+        setData(res);
+      }
+      setIsLoading(false);
     }
-
-    if (chartRef2.current) {
-      c2 = new Chart(chartRef2.current, {
-        type: 'bar',
-        data: {
-          labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
-          datasets: [
-            { label: 'Ziyadah', data: [2, 3, 2, 4, 3], backgroundColor: '#2D7A60' },
-            { label: 'Partner', data: [10, 10, 10, 10, 10], backgroundColor: '#E8F2ED' }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
+    
+    if (state.currentRole && session) {
+      fetchData();
     }
+  }, [state.currentRole, session]);
 
-    if (chartRef3.current) {
-      c3 = new Chart(chartRef3.current, {
-        type: 'doughnut',
-        data: {
-          labels: ['A (Sangat Lancar)', 'B (Lancar)', 'C (Kurang)'],
-          datasets: [{
-            data: [60, 30, 10],
-            backgroundColor: ['#2D7A60', '#679E83', '#D1E5DB']
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
-      });
-    }
+  if (isLoading) {
+    return <div className="p-8 text-center text-slate-400">Memuat analitik...</div>;
+  }
+  
+  if (!data) {
+    return <div className="p-8 text-center text-slate-400">Gagal memuat analitik.</div>;
+  }
 
-    return () => {
-      c1?.destroy();
-      c2?.destroy();
-      c3?.destroy();
-    };
-  }, []);
+  const roleTitle = state.currentRole === "super-admin" ? "Statistik Global" :
+                    state.currentRole === "admin-tenant" ? "Statistik Cabang" :
+                    state.currentRole === "guru" ? "Statistik Halaqah" : "Statistik Pribadi";
 
   return (
     <div className="px-5 space-y-6 pb-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-extrabold text-slate-800">Analisis Progres</h3>
-        <span className="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full">Statistik Santri</span>
+        <span className="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full">{roleTitle}</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
         <div className="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-          <span className="text-[9px] text-slate-400 font-bold block uppercase">Ziyadah</span>
-          <span className="text-lg font-black text-sage-500">42</span>
-          <span className="text-[9px] text-slate-400 block">Total Hal</span>
+          <span className="text-[9px] text-slate-400 font-bold block uppercase">{state.currentRole === "super-admin" ? "Cabang" : "Ziyadah"}</span>
+          <span className="text-lg font-black text-sage-500">{state.currentRole === "super-admin" ? data.stats.tenants : data.stats.ziyadah}</span>
+          <span className="text-[9px] text-slate-400 block">{state.currentRole === "super-admin" ? "Tenant Aktif" : "Total Setoran"}</span>
         </div>
         <div className="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-          <span className="text-[9px] text-slate-400 font-bold block uppercase">Muroja'ah</span>
-          <span className="text-lg font-black text-amber-500">120</span>
-          <span className="text-[9px] text-slate-400 block">Setor & Partner</span>
+          <span className="text-[9px] text-slate-400 font-bold block uppercase">{state.currentRole === "super-admin" ? "Halaqah" : "Muroja'ah"}</span>
+          <span className="text-lg font-black text-amber-500">{state.currentRole === "super-admin" ? data.stats.halaqahs : data.stats.murojaah}</span>
+          <span className="text-[9px] text-slate-400 block">{state.currentRole === "super-admin" ? "Halaqah Aktif" : "Partner"}</span>
         </div>
         <div className="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-          <span className="text-[9px] text-slate-400 font-bold block uppercase">Tatsbit</span>
-          <span className="text-lg font-black text-blue-500">15</span>
-          <span className="text-[9px] text-slate-400 block">Halaman</span>
+          <span className="text-[9px] text-slate-400 font-bold block uppercase">{state.currentRole === "super-admin" ? "Santri" : "Tatsbit"}</span>
+          <span className="text-lg font-black text-blue-500">{state.currentRole === "super-admin" ? data.stats.students : data.stats.tatsbit}</span>
+          <span className="text-[9px] text-slate-400 block">{state.currentRole === "super-admin" ? "Total Santri" : "Penyimak Guru"}</span>
         </div>
       </div>
 
       <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-        <h4 className="font-bold text-slate-800 text-sm mb-3">Grafik Jumlah Hafalan (Juz)</h4>
+        <h4 className="font-bold text-slate-800 text-sm mb-3">Aktivitas Harian (7 Hari Terakhir)</h4>
         <div className="h-44 w-full">
-          <canvas ref={chartRef1}></canvas>
+          <Line 
+            data={{
+              labels: data.dailyChart.labels,
+              datasets: data.dailyChart.datasets.map((ds: any, i: number) => ({
+                ...ds,
+                borderColor: i === 0 ? '#2D7A60' : '#E8F2ED',
+                backgroundColor: i === 0 ? '#D1E5DB' : '#E8F2ED',
+                tension: 0.4,
+                fill: i === 0 ? true : false,
+              }))
+            }}
+            options={{ responsive: true, maintainAspectRatio: false }}
+          />
         </div>
       </div>
-
-      <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-        <h4 className="font-bold text-slate-800 text-sm mb-3">Ziyadah Harian vs Partner</h4>
-        <div className="h-44 w-full">
-          <canvas ref={chartRef2}></canvas>
+      
+      {state.currentRole === "super-admin" && data.barChart && (
+        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
+          <h4 className="font-bold text-slate-800 text-sm mb-3">Top 5 Cabang (Jml Santri)</h4>
+          <div className="h-44 w-full">
+            <Bar 
+              data={{
+                labels: data.barChart.labels,
+                datasets: [{
+                  label: "Jumlah Santri",
+                  data: data.barChart.data,
+                  backgroundColor: '#2D7A60'
+                }]
+              }}
+              options={{ responsive: true, maintainAspectRatio: false }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
         <h4 className="font-bold text-slate-800 text-sm mb-3">Distribusi Nilai Kelancaran</h4>
-        <div className="h-44 w-full">
-          <canvas ref={chartRef3}></canvas>
+        <div className="h-44 w-full flex justify-center">
+          <Doughnut 
+            data={{
+              labels: data.doughnutChart.labels,
+              datasets: [{
+                data: data.doughnutChart.data,
+                backgroundColor: ['#2D7A60', '#679E83', '#D1E5DB']
+              }]
+            }}
+            options={{ responsive: true, maintainAspectRatio: false, cutout: '70%' }}
+          />
         </div>
       </div>
     </div>
