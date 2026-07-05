@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { AppProvider } from "@/context/AppContext";
-import MobileWrapper from "@/components/MobileWrapper";
+import Providers from "@/components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +15,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jaz Academy Tahfidz Tracker",
-  description: "Platform PWA Mutabaah & Tahfidz Al-Qur'an Multi-Tenant",
+  title: "JazQuran",
+  description: "Platform PWA Mutabaah Tahfidz Al-Qur'an",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2D7A60",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -32,11 +39,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>
-        <AppProvider>
-          <MobileWrapper>
-            {children}
-          </MobileWrapper>
-        </AppProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

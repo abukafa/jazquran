@@ -1,22 +1,25 @@
-"use client";
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAppContext } from "@/context/AppContext";
+import { ReactNode } from "react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import HeroCard from "@/components/HeroCard";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { state } = useAppContext();
-  const router = useRouter();
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  // Use Node.js runtime to read the session securely
+  const session = await getServerSession(authOptions);
 
-  useEffect(() => {
-    if (!state.currentRole) {
-      router.push("/login");
-    }
-  }, [state.currentRole, router]);
+  if (!session) {
+    redirect("/login");
+  }
 
-  if (!state.currentRole) return null;
+  const role = (session.user as any).role;
+  const tenantId = (session.user as any).tenantId;
+
+  if (role !== "super-admin" && !tenantId) {
+    redirect("/onboarding");
+  }
 
   return (
     <>

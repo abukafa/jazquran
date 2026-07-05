@@ -1,655 +1,1188 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jaz Academy Tahfidz Tracker</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JazQuran • Tahfidz Tracker</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Premium Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <!-- Chart.js for Beautiful Graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        sage: {
-                            50: '#F4F8F6',
-                            100: '#E8F2ED',
-                            200: '#D1E5DB',
-                            500: '#2D7A60',
-                            600: '#24624D',
-                            700: '#1B4A3A',
-                            800: '#123126',
-                        },
-                        slate: {
-                            950: '#0F172A'
-                        }
-                    },
-                    borderRadius: {
-                        '3xl': '1.5rem',
-                        '4xl': '2rem',
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              sage: {
+                50: "#F4F8F6",
+                100: "#E8F2ED",
+                200: "#D1E5DB",
+                500: "#2D7A60",
+                600: "#24624D",
+                700: "#1B4A3A",
+                800: "#123126",
+              },
+              slate: {
+                950: "#0F172A",
+              },
+            },
+            borderRadius: {
+              "3xl": "1.5rem",
+              "4xl": "2rem",
+            },
+          },
+        },
+      };
     </script>
     <style>
-        /* Smooth transitions for seamless feel */
-        .page-transition {
-            transition: all 0.3s ease-in-out;
+      /* Smooth transitions for seamless feel */
+      .page-transition {
+        transition: all 0.3s ease-in-out;
+      }
+      /* Custom scrollbar for beautiful lists */
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f4f8f6;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #2d7a60;
+        border-radius: 10px;
+      }
+      /* Lock view on mobile mockup for desktop screens */
+      @media (min-width: 640px) {
+        .mobile-frame {
+          max-width: 425px;
+          height: 900px;
+          border: 12px solid #1e293b;
+          border-radius: 3rem;
+          overflow: hidden;
+          position: relative;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
-        /* Custom scrollbar for beautiful lists */
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F4F8F6;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #2D7A60;
-            border-radius: 10px;
-        }
-        /* Lock view on mobile mockup for desktop screens */
-        @media (min-width: 640px) {
-            .mobile-frame {
-                max-width: 425px;
-                height: 900px;
-                border: 12px solid #1E293B;
-                border-radius: 3rem;
-                overflow: hidden;
-                position: relative;
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            }
-        }
+      }
     </style>
-</head>
-<body class="bg-slate-900 min-h-screen flex items-center justify-center font-sans antialiased text-slate-800">
-
+  </head>
+  <body
+    class="bg-slate-900 min-h-screen flex items-center justify-center font-sans antialiased text-slate-800"
+  >
     <!-- Main Device Emulator on Desktop / Fullscreen on Mobile -->
-    <div class="mobile-frame bg-sage-50 w-full min-h-screen sm:min-h-0 flex flex-col shadow-inner">
-        
-        <!-- Simulation & Notification Top Bar -->
-        <div class="bg-sage-600 text-white px-5 pt-3 pb-2 text-xs flex justify-between items-center z-50 shadow-sm">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-cloud-sun"></i>
-                <span class="font-semibold" id="top-time">11:29 AM</span>
+    <div
+      class="mobile-frame bg-sage-50 w-full min-h-screen sm:min-h-0 flex flex-col shadow-inner"
+    >
+      <!-- Simulation & Notification Top Bar -->
+      <div
+        class="bg-sage-600 text-white px-5 pt-3 pb-2 text-xs flex justify-between items-center z-50 shadow-sm"
+      >
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-cloud-sun"></i>
+          <span class="font-semibold" id="top-time">11:29 AM</span>
+        </div>
+        <!-- Simulation Toggles: Online status & Queue -->
+        <div class="flex items-center gap-3">
+          <button
+            onclick="toggleOnlineState()"
+            id="online-badge"
+            class="bg-emerald-400 text-slate-950 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:opacity-90 transition"
+          >
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span> ONLINE</span>
+          </button>
+          <div
+            id="sync-queue-badge"
+            class="hidden bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full font-bold"
+          >
+            <i class="fa-solid fa-rotate animate-spin"></i>
+            <span id="queue-count">0</span> Sync
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Modal Window for Feedback / Notifications -->
+      <div
+        id="custom-modal"
+        class="hidden absolute inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-6 page-transition"
+      >
+        <div
+          class="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl scale-95 transition-all"
+        >
+          <div
+            id="modal-icon-container"
+            class="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4"
+          >
+            <i id="modal-icon" class="text-2xl text-white"></i>
+          </div>
+          <h3 id="modal-title" class="text-xl font-bold text-slate-800 mb-2">
+            Notifikasi
+          </h3>
+          <p id="modal-body" class="text-slate-600 text-sm mb-6">
+            Pesan detail notifikasi di sini...
+          </p>
+          <button
+            onclick="closeModal()"
+            class="w-full bg-sage-500 hover:bg-sage-600 text-white font-semibold py-3 rounded-2xl transition shadow-lg shadow-sage-500/20"
+          >
+            Selesai
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Main Viewport -->
+      <div class="flex-1 overflow-y-auto pb-24 relative" id="app-viewport">
+        <!-- SECTION 1: WELCOME SCREEN (CAROUSEL) -->
+        <div
+          id="screen-welcome"
+          class="p-6 flex flex-col justify-between h-full min-h-[750px]"
+        >
+          <!-- Header Logo -->
+          <div class="text-center pt-4">
+            <span
+              class="bg-sage-100 text-sage-700 text-xs font-bold px-3 py-1.5 rounded-full tracking-wider uppercase"
+              >Tahfidz Tracker</span
+            >
+            <h1 class="text-3xl font-extrabold text-sage-700 mt-2">JazQuran</h1>
+          </div>
+
+          <!-- Carousel Body (Dynamic content) -->
+          <div class="my-auto text-center px-4">
+            <!-- Carousel Slide 1 -->
+            <div id="slide-1" class="carousel-slide flex flex-col items-center">
+              <div
+                class="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner"
+              >
+                <!-- Custom SVG Al-Quran Icon -->
+                <svg
+                  class="w-32 h-32 text-sage-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-slate-800 mb-3">
+                Sistem Mutabaah Digital
+              </h2>
+              <p class="text-slate-500 text-sm leading-relaxed">
+                Platform monitoring setoran Al-Qur'an secara real-time untuk
+                mencetak generasi hafiz yang disiplin, berkarakter, dan mutqin.
+              </p>
             </div>
-            <!-- Simulation Toggles: Online status & Queue -->
-            <div class="flex items-center gap-3">
-                <button onclick="toggleOnlineState()" id="online-badge" class="bg-emerald-400 text-slate-950 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:opacity-90 transition">
-                    <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                    <span>ONLINE</span>
+
+            <!-- Carousel Slide 2 (Hidden Initially) -->
+            <div
+              id="slide-2"
+              class="carousel-slide hidden flex flex-col items-center"
+            >
+              <div
+                class="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner"
+              >
+                <svg
+                  class="w-32 h-32 text-sage-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.97 5.97 0 0 0-.75-2.906m-.173-4.094a3 3 0 1 1-.002-5.998 3 3 0 0 1 .002 5.998ZM12 11a6.062 6.062 0 0 1-5.963-1.584 6.062 6.062 0 0 1-.038-.666v-.03c0-3.323 2.697-6 6-6s6 2.677 6 6v.03c0 .222-.012.445-.038.666A6.062 6.062 0 0 1 12 11Zm0 0a5.97 5.97 0 0 0-.75 2.906m.75-2.906c.263 0 .515.045.75.127m-3.417 2.779a3 3 0 0 0-4.681 2.72 3 3 0 0 0 3.74 3.198c-.025-.219-.038-.441-.038-.666l.001-.03a5.97 5.97 0 0 1 .978-3.198Z"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-slate-800 mb-3">
+                SOP Partner Muraja'ah
+              </h2>
+              <p class="text-slate-500 text-sm leading-relaxed">
+                Saling menguatkan hafalan bersama rekan sejawat. Ziyadah hari
+                ini terkunci sebelum verifikasi partner diselesaikan.
+              </p>
+            </div>
+
+            <!-- Carousel Slide 3 (Hidden Initially) -->
+            <div
+              id="slide-3"
+              class="carousel-slide hidden flex flex-col items-center"
+            >
+              <div
+                class="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner"
+              >
+                <svg
+                  class="w-32 h-32 text-sage-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-slate-800 mb-3">
+                Analisis Progres & Grafik
+              </h2>
+              <p class="text-slate-500 text-sm leading-relaxed">
+                Visualisasi diagram kemajuan mingguan, akumulasi juz, serta
+                notifikasi ujian tatsbit dan siaran live tasmi otomatis.
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer Navigation Buttons for Carousel -->
+          <div class="flex flex-col gap-3 pb-4">
+            <div class="flex justify-center gap-2 mb-2" id="carousel-dots">
+              <span
+                class="w-2.5 h-2.5 rounded-full bg-sage-500"
+                onclick="showSlide(1)"
+              ></span>
+              <span
+                class="w-2.5 h-2.5 rounded-full bg-sage-200"
+                onclick="showSlide(2)"
+              ></span>
+              <span
+                class="w-2.5 h-2.5 rounded-full bg-sage-200"
+                onclick="showSlide(3)"
+              ></span>
+            </div>
+            <button
+              onclick="nextSlide()"
+              class="bg-sage-500 hover:bg-sage-600 text-white font-semibold py-3.5 rounded-2xl transition shadow-lg shadow-sage-500/20 w-full flex items-center justify-center gap-2"
+            >
+              <span>Lanjutkan</span>
+              <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+            <button
+              onclick="goToLogin()"
+              class="text-sage-700 hover:text-sage-800 font-bold text-sm py-2"
+            >
+              Lewati & Masuk
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTION 2: LOGIN / REGISTER -->
+        <div
+          id="screen-login"
+          class="hidden p-6 flex flex-col justify-between h-full min-h-[750px]"
+        >
+          <div class="text-center pt-6">
+            <span
+              class="bg-sage-100 text-sage-700 text-xs font-bold px-3 py-1.5 rounded-full tracking-wider uppercase"
+              >Sign In</span
+            >
+            <h2 class="text-3xl font-extrabold text-slate-800 mt-2">
+              Masuk Akun
+            </h2>
+            <p class="text-slate-500 text-sm mt-2">
+              Pilih peran uji coba Anda untuk merasakan seluruh dasbor terpadu
+            </p>
+          </div>
+
+          <!-- Dynamic Role Selector for Demo purposes -->
+          <div class="my-6 space-y-3">
+            <label
+              class="block text-slate-700 font-bold text-sm mb-1 text-center"
+              >Uji Coba Sebagai:</label
+            >
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                onclick="selectDemoRole('super-admin')"
+                id="role-super-admin"
+                class="role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30"
+              >
+                <i class="fa-solid fa-user-shield text-lg text-sage-500"></i>
+                <span>Super-Admin</span>
+              </button>
+              <button
+                onclick="selectDemoRole('admin-tenant')"
+                id="role-admin-tenant"
+                class="role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30"
+              >
+                <i class="fa-solid fa-school text-lg text-sage-500"></i>
+                <span>Admin Tenant</span>
+              </button>
+              <button
+                onclick="selectDemoRole('guru')"
+                id="role-guru"
+                class="role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30"
+              >
+                <i
+                  class="fa-solid fa-chalkboard-user text-lg text-sage-500"
+                ></i>
+                <span>Ustadz / Guru</span>
+              </button>
+              <button
+                onclick="selectDemoRole('murid')"
+                id="role-murid"
+                class="role-btn bg-sage-500 border-2 border-sage-500 text-white p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition shadow-lg shadow-sage-500/10"
+              >
+                <i class="fa-solid fa-user-graduate text-lg"></i>
+                <span>Santri / Murid</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-4 pb-6">
+            <button
+              onclick="simulateGoogleLogin()"
+              class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold py-3.5 rounded-2xl transition flex items-center justify-center gap-3 shadow-sm"
+            >
+              <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="#EA4335"
+                  d="M12 5.04c1.64 0 3.12.56 4.29 1.67l3.21-3.21C17.55 1.7 14.97 1 12 1 7.35 1 3.41 3.68 1.48 7.58l3.78 2.93c.9-2.7 3.41-4.47 6.74-4.47z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.43c-.28 1.44-1.09 2.67-2.3 3.49l3.58 2.78c2.1-1.94 3.3-4.8 3.3-8.42z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.26 14.51c-.24-.71-.38-1.47-.38-2.26 0-.79.14-1.55.38-2.26L1.48 7.06C.54 8.96 0 11.08 0 13.25c0 2.17.54 4.29 1.48 6.19l3.78-2.93z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.58-2.78c-.99.66-2.26 1.07-4.38 1.07-3.33 0-5.84-1.77-6.74-4.47L1.48 16.8A11.972 11.972 0 0 0 12 23z"
+                />
+              </svg>
+              <span>Masuk dengan Google</span>
+            </button>
+            <p class="text-center text-xs text-slate-400">
+              Masuk otomatis mendeteksi tenant & ruang kelas Anda.
+            </p>
+          </div>
+        </div>
+
+        <!-- SECTION 3: APP MAIN PAGES (Shown inside dynamic container once logged in) -->
+        <div id="app-main-pages" class="hidden">
+          <!-- Dynamic Hero Card Container -->
+          <div class="px-5 pt-6 pb-2" id="dashboard-hero">
+            <!-- Loaded dynamically via JavaScript based on selected Role -->
+          </div>
+
+          <!-- SUBPAGE A: HOME / DASHBOARD TAB -->
+          <div id="tab-home" class="px-5 space-y-6">
+            <!-- Sub-dashboard injected dynamically based on role -->
+            <div id="dynamic-dashboard-content"></div>
+          </div>
+
+          <!-- SUBPAGE B: ZIYADAH TAB -->
+          <div id="tab-ziyah" class="hidden px-5 space-y-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-extrabold text-slate-800">
+                Mutabaah Ziyadah
+              </h3>
+              <span
+                class="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full"
+                id="ziyadah-role-badge"
+                >Guru Mode</span
+              >
+            </div>
+
+            <!-- Guru's 3 Interactive Floating Link Cards -->
+            <div id="guru-ziyadah-actions" class="grid grid-cols-3 gap-2.5">
+              <button
+                onclick="openZiyadahForm('setoran')"
+                class="bg-white border border-sage-500/20 p-3 rounded-2xl flex flex-col items-center text-center gap-1 shadow-sm hover:border-sage-500 transition"
+              >
+                <div
+                  class="w-9 h-9 rounded-xl bg-sage-50 flex items-center justify-center text-sage-500"
+                >
+                  <i class="fa-solid fa-microphone-lines text-sm"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-700"
+                  >Setoran Baru</span
+                >
+              </button>
+              <button
+                onclick="openZiyadahForm('talaqqi')"
+                class="bg-white border border-sage-500/20 p-3 rounded-2xl flex flex-col items-center text-center gap-1 shadow-sm hover:border-sage-500 transition"
+              >
+                <div
+                  class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500"
+                >
+                  <i class="fa-solid fa-book-open-reader text-sm"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-700"
+                  >Talaqqi 20x</span
+                >
+              </button>
+              <button
+                onclick="openZiyadahForm('binnadzor')"
+                class="bg-white border border-sage-500/20 p-3 rounded-2xl flex flex-col items-center text-center gap-1 shadow-sm hover:border-sage-500 transition"
+              >
+                <div
+                  class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500"
+                >
+                  <i class="fa-solid fa-eye text-sm"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-700"
+                  >Bin-Nadzor</span
+                >
+              </button>
+            </div>
+
+            <!-- COLLAPSIBLE WORK FORMS (Ziyadah) -->
+            <div
+              id="ziyadah-form-container"
+              class="hidden bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4"
+            >
+              <div
+                class="flex justify-between items-center pb-2 border-b border-slate-100"
+              >
+                <h4
+                  id="ziyadah-form-title"
+                  class="font-bold text-slate-800 text-sm"
+                >
+                  Formulir Input
+                </h4>
+                <button
+                  onclick="closeWorkForms()"
+                  class="text-slate-400 hover:text-slate-600"
+                >
+                  <i class="fa-solid fa-xmark"></i>
                 </button>
-                <div id="sync-queue-badge" class="hidden bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full font-bold">
-                    <i class="fa-solid fa-rotate animate-spin"></i> <span id="queue-count">0</span> Sync
-                </div>
-            </div>
-        </div>
+              </div>
 
-        <!-- Custom Modal Window for Feedback / Notifications -->
-        <div id="custom-modal" class="hidden absolute inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-6 page-transition">
-            <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl scale-95 transition-all">
-                <div id="modal-icon-container" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
-                    <i id="modal-icon" class="text-2xl text-white"></i>
-                </div>
-                <h3 id="modal-title" class="text-xl font-bold text-slate-800 mb-2">Notifikasi</h3>
-                <p id="modal-body" class="text-slate-600 text-sm mb-6">Pesan detail notifikasi di sini...</p>
-                <button onclick="closeModal()" class="w-full bg-sage-500 hover:bg-sage-600 text-white font-semibold py-3 rounded-2xl transition shadow-lg shadow-sage-500/20">
-                    Selesai
+              <!-- Real-time forms -->
+              <div id="form-inner-content">
+                <!-- Form content generated by javascript dynamically -->
+              </div>
+            </div>
+
+            <!-- Search / Filters for Table -->
+            <div class="flex gap-2">
+              <input
+                type="text"
+                id="ziyadah-search"
+                placeholder="Cari santri..."
+                oninput="filterZiyadahTable()"
+                class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sage-500/20"
+              />
+              <select
+                id="ziyadah-filter-juz"
+                onchange="filterZiyadahTable()"
+                class="bg-white border border-slate-200 rounded-xl px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sage-500/20"
+              >
+                <option value="">Semua Juz</option>
+                <option value="30">Juz 30</option>
+                <option value="29">Juz 29</option>
+                <option value="28">Juz 28</option>
+              </select>
+            </div>
+
+            <!-- Interactive Data Table (Ziyadah) -->
+            <div
+              class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
+            >
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr
+                      class="bg-sage-50/70 text-[10px] font-extrabold uppercase text-slate-500 tracking-wider"
+                    >
+                      <th class="px-4 py-3">Santri</th>
+                      <th class="px-4 py-3">Setoran (Ziyadah)</th>
+                      <th class="px-4 py-3 text-center">Bin-Nadzor</th>
+                      <th class="px-4 py-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="ziyadah-table-body"
+                    class="divide-y divide-slate-100 text-xs text-slate-600"
+                  >
+                    <!-- Populated dynamically via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBPAGE C: MUROJAAH TAB -->
+          <div id="tab-murojaah" class="hidden px-5 space-y-6">
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-extrabold text-slate-800">
+                  Evaluasi Hafalan
+                </h3>
+              </div>
+
+              <!-- Horizontal Tabs Switcher -->
+              <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1">
+                <button
+                  onclick="switchMurojaahTab('partner')"
+                  id="murojaah-tab-partner-btn"
+                  class="flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-slate-800 shadow-sm"
+                >
+                  Muroja'ah Partner
                 </button>
+                <button
+                  onclick="switchMurojaahTab('tatsbit')"
+                  id="murojaah-tab-tatsbit-btn"
+                  class="flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-500 hover:text-slate-800"
+                >
+                  Tatsbit (Guru)
+                </button>
+              </div>
             </div>
+
+            <!-- Floating Link Form Input -->
+            <div
+              id="murojaah-form-link-container"
+              class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm"
+            >
+              <div
+                id="murojaah-form-header"
+                class="flex justify-between items-center mb-3"
+              >
+                <h4
+                  id="murojaah-form-title"
+                  class="font-bold text-slate-800 text-sm"
+                >
+                  Verifikasi Muroja'ah Partner
+                </h4>
+                <span
+                  class="text-[10px] bg-sage-100 text-sage-700 px-2 py-0.5 rounded-full font-bold"
+                  >10 Halaman</span
+                >
+              </div>
+              <p class="text-slate-500 text-xs mb-4" id="murojaah-form-desc">
+                Laporkan penyelesaian setoran minimal 10 halaman bersama partner
+                yang telah ditentukan.
+              </p>
+
+              <div class="space-y-3" id="murojaah-inputs-wrapper">
+                <!-- Dynamic inputs loaded based on selected tab -->
+              </div>
+            </div>
+
+            <!-- List of current evaluations -->
+            <div class="space-y-3">
+              <h4
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                id="murojaah-list-title"
+              >
+                Daftar Setoran Partner
+              </h4>
+              <div class="space-y-2" id="murojaah-list-container">
+                <!-- Populated via javascript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBPAGE D: GRAPH TAB -->
+          <div id="tab-graph" class="hidden px-5 space-y-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-extrabold text-slate-800">
+                Analisis Progres
+              </h3>
+              <span
+                class="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full"
+                >Statistik Santri</span
+              >
+            </div>
+
+            <!-- Quick stats top slider -->
+            <div class="grid grid-cols-3 gap-2.5">
+              <div
+                class="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm"
+              >
+                <span
+                  class="text-[9px] text-slate-400 font-bold block uppercase"
+                  >Ziyadah</span
+                >
+                <span
+                  class="text-lg font-black text-sage-500"
+                  id="stat-total-ziyadah"
+                  >42</span
+                >
+                <span class="text-[9px] text-slate-400 block">Total Hal</span>
+              </div>
+              <div
+                class="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm"
+              >
+                <span
+                  class="text-[9px] text-slate-400 font-bold block uppercase"
+                  >Muroja'ah</span
+                >
+                <span
+                  class="text-lg font-black text-amber-500"
+                  id="stat-total-murojaah"
+                  >120</span
+                >
+                <span class="text-[9px] text-slate-400 block"
+                  >Setor & Partner</span
+                >
+              </div>
+              <div
+                class="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm"
+              >
+                <span
+                  class="text-[9px] text-slate-400 font-bold block uppercase"
+                  >Tatsbit</span
+                >
+                <span
+                  class="text-lg font-black text-blue-500"
+                  id="stat-total-tatsbit"
+                  >15</span
+                >
+                <span class="text-[9px] text-slate-400 block">Halaman</span>
+              </div>
+            </div>
+
+            <!-- Graph 1: Cumulative Juz -->
+            <div
+              class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm"
+            >
+              <h4 class="font-bold text-slate-800 text-sm mb-3">
+                Grafik Jumlah Hafalan (Juz)
+              </h4>
+              <div class="h-44 flex items-center justify-center">
+                <canvas id="chart-cumulative-juz"></canvas>
+              </div>
+            </div>
+
+            <!-- Graph 2: Setoran vs Partner -->
+            <div
+              class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm"
+            >
+              <h4 class="font-bold text-slate-800 text-sm mb-3">
+                Ziyadah Harian vs Partner
+              </h4>
+              <div class="h-44 flex items-center justify-center">
+                <canvas id="chart-setoran-murojaah"></canvas>
+              </div>
+            </div>
+
+            <!-- Graph 3: Tatsbit distribution -->
+            <div
+              class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm"
+            >
+              <h4 class="font-bold text-slate-800 text-sm mb-3">
+                Distribusi Nilai Kelancaran
+              </h4>
+              <div class="h-44 flex items-center justify-center">
+                <canvas id="chart-tatsbit-grades"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBPAGE E: PROFILE TAB -->
+          <div id="tab-profile" class="hidden px-5 space-y-6">
+            <!-- Profile Info -->
+            <div
+              class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center relative overflow-hidden"
+            >
+              <div
+                class="absolute top-0 inset-x-0 h-16 bg-gradient-to-r from-sage-500 to-sage-600"
+              ></div>
+              <div class="relative pt-6">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256"
+                  id="profile-avatar"
+                  class="w-20 h-20 rounded-full border-4 border-white mx-auto shadow-md object-cover"
+                  alt="Avatar"
+                />
+                <h3
+                  class="text-lg font-bold text-slate-800 mt-2"
+                  id="profile-name"
+                >
+                  Hamzah Dwi Nugroho
+                </h3>
+                <p class="text-xs text-slate-400" id="profile-role">
+                  Santri - Jaz Academy Jakarta
+                </p>
+              </div>
+              <div
+                class="grid grid-cols-2 gap-2 mt-6 pt-6 border-t border-slate-100"
+              >
+                <div class="text-left">
+                  <span class="text-[10px] text-slate-400 block"
+                    >Email Terdaftar</span
+                  >
+                  <span
+                    class="text-xs font-bold text-slate-700"
+                    id="profile-email"
+                    >hamzah.dwi@gmail.com</span
+                  >
+                </div>
+                <div class="text-left border-l border-slate-100 pl-4">
+                  <span class="text-[10px] text-slate-400 block"
+                    >SOP Tingkat Tartil</span
+                  >
+                  <span
+                    class="text-xs font-bold text-sage-600"
+                    id="profile-tartil-level"
+                    >Menengah</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Super Admin Actions Panel -->
+            <div id="profile-super-admin-section" class="hidden space-y-3">
+              <h4
+                class="text-xs font-extrabold text-slate-400 uppercase tracking-wider"
+              >
+                Konfigurasi Global (Super-Admin)
+              </h4>
+              <div
+                class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4"
+              >
+                <button
+                  onclick="openSuperAdminForm('tenant')"
+                  class="w-full bg-sage-50 hover:bg-sage-100 text-sage-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center transition"
+                >
+                  <span
+                    ><i class="fa-solid fa-square-plus mr-2"></i> Tambah Tenant
+                    Baru</span
+                  >
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <!-- List of Tenants for simulation -->
+                <div class="space-y-2 mt-2">
+                  <span class="text-[10px] font-bold text-slate-400 block"
+                    >Daftar Tenant Terdaftar</span
+                  >
+                  <div
+                    class="divide-y divide-slate-50 border border-slate-100 rounded-xl overflow-hidden bg-slate-50/50"
+                    id="super-tenant-list"
+                  >
+                    <!-- Mock list of schools -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Admin Tenant Actions Panel -->
+            <div id="profile-admin-tenant-section" class="hidden space-y-3">
+              <h4
+                class="text-xs font-extrabold text-slate-400 uppercase tracking-wider"
+              >
+                Kelola Data Tenant (Admin)
+              </h4>
+              <div
+                class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3"
+              >
+                <button
+                  onclick="openAdminTenantForm('guru')"
+                  class="w-full bg-sage-50 hover:bg-sage-100 text-sage-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center transition"
+                >
+                  <span
+                    ><i class="fa-solid fa-user-plus mr-2"></i> Daftarkan Ustadz
+                    / Guru</span
+                  >
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button
+                  onclick="openAdminTenantForm('murid')"
+                  class="w-full bg-sage-50 hover:bg-sage-100 text-sage-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center transition"
+                >
+                  <span
+                    ><i class="fa-solid fa-graduation-cap mr-2"></i> Registrasi
+                    Santri Baru</span
+                  >
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Common Options & Logout -->
+            <div class="space-y-2">
+              <button
+                onclick="simulateLogout()"
+                class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-3.5 rounded-2xl transition text-xs flex items-center justify-center gap-2"
+              >
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Keluar dari Aplikasi</span>
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Scrollable Main Viewport -->
-        <div class="flex-1 overflow-y-auto pb-24 relative" id="app-viewport">
-
-            <!-- SECTION 1: WELCOME SCREEN (CAROUSEL) -->
-            <div id="screen-welcome" class="p-6 flex flex-col justify-between h-full min-h-[750px]">
-                <!-- Header Logo -->
-                <div class="text-center pt-4">
-                    <span class="bg-sage-100 text-sage-700 text-xs font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">Jaz Academy</span>
-                    <h1 class="text-3xl font-extrabold text-sage-700 mt-2">Tahfidz Tracker</h1>
-                </div>
-
-                <!-- Carousel Body (Dynamic content) -->
-                <div class="my-auto text-center px-4">
-                    <!-- Carousel Slide 1 -->
-                    <div id="slide-1" class="carousel-slide flex flex-col items-center">
-                        <div class="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
-                            <!-- Custom SVG Al-Quran Icon -->
-                            <svg class="w-32 h-32 text-sage-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl font-bold text-slate-800 mb-3">Sistem Mutabaah Digital</h2>
-                        <p class="text-slate-500 text-sm leading-relaxed">Platform monitoring setoran Al-Qur'an secara real-time untuk mencetak generasi hafiz yang disiplin, berkarakter, dan mutqin.</p>
-                    </div>
-
-                    <!-- Carousel Slide 2 (Hidden Initially) -->
-                    <div id="slide-2" class="carousel-slide hidden flex flex-col items-center">
-                        <div class="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
-                            <svg class="w-32 h-32 text-sage-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.97 5.97 0 0 0-.75-2.906m-.173-4.094a3 3 0 1 1-.002-5.998 3 3 0 0 1 .002 5.998ZM12 11a6.062 6.062 0 0 1-5.963-1.584 6.062 6.062 0 0 1-.038-.666v-.03c0-3.323 2.697-6 6-6s6 2.677 6 6v.03c0 .222-.012.445-.038.666A6.062 6.062 0 0 1 12 11Zm0 0a5.97 5.97 0 0 0-.75 2.906m.75-2.906c.263 0 .515.045.75.127m-3.417 2.779a3 3 0 0 0-4.681 2.72 3 3 0 0 0 3.74 3.198c-.025-.219-.038-.441-.038-.666l.001-.03a5.97 5.97 0 0 1 .978-3.198Z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl font-bold text-slate-800 mb-3">SOP Partner Muraja'ah</h2>
-                        <p class="text-slate-500 text-sm leading-relaxed">Saling menguatkan hafalan bersama rekan sejawat. Ziyadah hari ini terkunci sebelum verifikasi partner diselesaikan.</p>
-                    </div>
-
-                    <!-- Carousel Slide 3 (Hidden Initially) -->
-                    <div id="slide-3" class="carousel-slide hidden flex flex-col items-center">
-                        <div class="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
-                            <svg class="w-32 h-32 text-sage-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl font-bold text-slate-800 mb-3">Analisis Progres & Grafik</h2>
-                        <p class="text-slate-500 text-sm leading-relaxed">Visualisasi diagram kemajuan mingguan, akumulasi juz, serta notifikasi ujian tatsbit dan siaran live tasmi otomatis.</p>
-                    </div>
-                </div>
-
-                <!-- Footer Navigation Buttons for Carousel -->
-                <div class="flex flex-col gap-3 pb-4">
-                    <div class="flex justify-center gap-2 mb-2" id="carousel-dots">
-                        <span class="w-2.5 h-2.5 rounded-full bg-sage-500" onclick="showSlide(1)"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-sage-200" onclick="showSlide(2)"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-sage-200" onclick="showSlide(3)"></span>
-                    </div>
-                    <button onclick="nextSlide()" class="bg-sage-500 hover:bg-sage-600 text-white font-semibold py-3.5 rounded-2xl transition shadow-lg shadow-sage-500/20 w-full flex items-center justify-center gap-2">
-                        <span>Lanjutkan</span>
-                        <i class="fa-solid fa-arrow-right text-sm"></i>
-                    </button>
-                    <button onclick="goToLogin()" class="text-sage-700 hover:text-sage-800 font-bold text-sm py-2">
-                        Lewati & Masuk
-                    </button>
-                </div>
-            </div>
-
-            <!-- SECTION 2: LOGIN / REGISTER -->
-            <div id="screen-login" class="hidden p-6 flex flex-col justify-between h-full min-h-[750px]">
-                <div class="text-center pt-6">
-                    <span class="bg-sage-100 text-sage-700 text-xs font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">Sign In</span>
-                    <h2 class="text-3xl font-extrabold text-slate-800 mt-2">Masuk Akun</h2>
-                    <p class="text-slate-500 text-sm mt-2">Pilih peran uji coba Anda untuk merasakan seluruh dasbor terpadu</p>
-                </div>
-
-                <!-- Dynamic Role Selector for Demo purposes -->
-                <div class="my-6 space-y-3">
-                    <label class="block text-slate-700 font-bold text-sm mb-1 text-center">Uji Coba Sebagai:</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="selectDemoRole('super-admin')" id="role-super-admin" class="role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30">
-                            <i class="fa-solid fa-user-shield text-lg text-sage-500"></i>
-                            <span>Super-Admin</span>
-                        </button>
-                        <button onclick="selectDemoRole('admin-tenant')" id="role-admin-tenant" class="role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30">
-                            <i class="fa-solid fa-school text-lg text-sage-500"></i>
-                            <span>Admin Tenant</span>
-                        </button>
-                        <button onclick="selectDemoRole('guru')" id="role-guru" class="role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30">
-                            <i class="fa-solid fa-chalkboard-user text-lg text-sage-500"></i>
-                            <span>Ustadz / Guru</span>
-                        </button>
-                        <button onclick="selectDemoRole('murid')" id="role-murid" class="role-btn bg-sage-500 border-2 border-sage-500 text-white p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition shadow-lg shadow-sage-500/10">
-                            <i class="fa-solid fa-user-graduate text-lg"></i>
-                            <span>Santri / Murid</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="space-y-4 pb-6">
-                    <button onclick="simulateGoogleLogin()" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold py-3.5 rounded-2xl transition flex items-center justify-center gap-3 shadow-sm">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24">
-                            <path fill="#EA4335" d="M12 5.04c1.64 0 3.12.56 4.29 1.67l3.21-3.21C17.55 1.7 14.97 1 12 1 7.35 1 3.41 3.68 1.48 7.58l3.78 2.93c.9-2.7 3.41-4.47 6.74-4.47z"/>
-                            <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.43c-.28 1.44-1.09 2.67-2.3 3.49l3.58 2.78c2.1-1.94 3.3-4.8 3.3-8.42z"/>
-                            <path fill="#FBBC05" d="M5.26 14.51c-.24-.71-.38-1.47-.38-2.26 0-.79.14-1.55.38-2.26L1.48 7.06C.54 8.96 0 11.08 0 13.25c0 2.17.54 4.29 1.48 6.19l3.78-2.93z"/>
-                            <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.58-2.78c-.99.66-2.26 1.07-4.38 1.07-3.33 0-5.84-1.77-6.74-4.47L1.48 16.8A11.972 11.972 0 0 0 12 23z"/>
-                        </svg>
-                        <span>Masuk dengan Google</span>
-                    </button>
-                    <p class="text-center text-xs text-slate-400">
-                        Masuk otomatis mendeteksi tenant & ruang kelas Anda.
-                    </p>
-                </div>
-            </div>
-
-            <!-- SECTION 3: APP MAIN PAGES (Shown inside dynamic container once logged in) -->
-            <div id="app-main-pages" class="hidden">
-                
-                <!-- Dynamic Hero Card Container -->
-                <div class="px-5 pt-6 pb-2" id="dashboard-hero">
-                    <!-- Loaded dynamically via JavaScript based on selected Role -->
-                </div>
-
-                <!-- SUBPAGE A: HOME / DASHBOARD TAB -->
-                <div id="tab-home" class="px-5 space-y-6">
-                    <!-- Sub-dashboard injected dynamically based on role -->
-                    <div id="dynamic-dashboard-content"></div>
-                </div>
-
-                <!-- SUBPAGE B: ZIYADAH TAB -->
-                <div id="tab-ziyah" class="hidden px-5 space-y-6">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-extrabold text-slate-800">Mutabaah Ziyadah</h3>
-                        <span class="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full" id="ziyadah-role-badge">Guru Mode</span>
-                    </div>
-
-                    <!-- Guru's 3 Interactive Floating Link Cards -->
-                    <div id="guru-ziyadah-actions" class="grid grid-cols-3 gap-2.5">
-                        <button onclick="openZiyadahForm('setoran')" class="bg-white border border-sage-500/20 p-3 rounded-2xl flex flex-col items-center text-center gap-1 shadow-sm hover:border-sage-500 transition">
-                            <div class="w-9 h-9 rounded-xl bg-sage-50 flex items-center justify-center text-sage-500">
-                                <i class="fa-solid fa-microphone-lines text-sm"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-700">Setoran Baru</span>
-                        </button>
-                        <button onclick="openZiyadahForm('talaqqi')" class="bg-white border border-sage-500/20 p-3 rounded-2xl flex flex-col items-center text-center gap-1 shadow-sm hover:border-sage-500 transition">
-                            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
-                                <i class="fa-solid fa-book-open-reader text-sm"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-700">Talaqqi 20x</span>
-                        </button>
-                        <button onclick="openZiyadahForm('binnadzor')" class="bg-white border border-sage-500/20 p-3 rounded-2xl flex flex-col items-center text-center gap-1 shadow-sm hover:border-sage-500 transition">
-                            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
-                                <i class="fa-solid fa-eye text-sm"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-700">Bin-Nadzor</span>
-                        </button>
-                    </div>
-
-                    <!-- COLLAPSIBLE WORK FORMS (Ziyadah) -->
-                    <div id="ziyadah-form-container" class="hidden bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4">
-                        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-                            <h4 id="ziyadah-form-title" class="font-bold text-slate-800 text-sm">Formulir Input</h4>
-                            <button onclick="closeWorkForms()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                        
-                        <!-- Real-time forms -->
-                        <div id="form-inner-content">
-                            <!-- Form content generated by javascript dynamically -->
-                        </div>
-                    </div>
-
-                    <!-- Search / Filters for Table -->
-                    <div class="flex gap-2">
-                        <input type="text" id="ziyadah-search" placeholder="Cari santri..." oninput="filterZiyadahTable()" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sage-500/20">
-                        <select id="ziyadah-filter-juz" onchange="filterZiyadahTable()" class="bg-white border border-slate-200 rounded-xl px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sage-500/20">
-                            <option value="">Semua Juz</option>
-                            <option value="30">Juz 30</option>
-                            <option value="29">Juz 29</option>
-                            <option value="28">Juz 28</option>
-                        </select>
-                    </div>
-
-                    <!-- Interactive Data Table (Ziyadah) -->
-                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-sage-50/70 text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
-                                        <th class="px-4 py-3">Santri</th>
-                                        <th class="px-4 py-3">Setoran (Ziyadah)</th>
-                                        <th class="px-4 py-3 text-center">Bin-Nadzor</th>
-                                        <th class="px-4 py-3 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ziyadah-table-body" class="divide-y divide-slate-100 text-xs text-slate-600">
-                                    <!-- Populated dynamically via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUBPAGE C: MUROJAAH TAB -->
-                <div id="tab-murojaah" class="hidden px-5 space-y-6">
-                    <div class="flex flex-col gap-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-extrabold text-slate-800">Evaluasi Hafalan</h3>
-                        </div>
-
-                        <!-- Horizontal Tabs Switcher -->
-                        <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1">
-                            <button onclick="switchMurojaahTab('partner')" id="murojaah-tab-partner-btn" class="flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-slate-800 shadow-sm">
-                                Muroja'ah Partner
-                            </button>
-                            <button onclick="switchMurojaahTab('tatsbit')" id="murojaah-tab-tatsbit-btn" class="flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-500 hover:text-slate-800">
-                                Tatsbit (Guru)
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Floating Link Form Input -->
-                    <div id="murojaah-form-link-container" class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-                        <div id="murojaah-form-header" class="flex justify-between items-center mb-3">
-                            <h4 id="murojaah-form-title" class="font-bold text-slate-800 text-sm">Verifikasi Muroja'ah Partner</h4>
-                            <span class="text-[10px] bg-sage-100 text-sage-700 px-2 py-0.5 rounded-full font-bold">10 Halaman</span>
-                        </div>
-                        <p class="text-slate-500 text-xs mb-4" id="murojaah-form-desc">Laporkan penyelesaian setoran minimal 10 halaman bersama partner yang telah ditentukan.</p>
-                        
-                        <div class="space-y-3" id="murojaah-inputs-wrapper">
-                            <!-- Dynamic inputs loaded based on selected tab -->
-                        </div>
-                    </div>
-
-                    <!-- List of current evaluations -->
-                    <div class="space-y-3">
-                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider" id="murojaah-list-title">Daftar Setoran Partner</h4>
-                        <div class="space-y-2" id="murojaah-list-container">
-                            <!-- Populated via javascript -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUBPAGE D: GRAPH TAB -->
-                <div id="tab-graph" class="hidden px-5 space-y-6">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-extrabold text-slate-800">Analisis Progres</h3>
-                        <span class="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full">Statistik Santri</span>
-                    </div>
-
-                    <!-- Quick stats top slider -->
-                    <div class="grid grid-cols-3 gap-2.5">
-                        <div class="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-                            <span class="text-[9px] text-slate-400 font-bold block uppercase">Ziyadah</span>
-                            <span class="text-lg font-black text-sage-500" id="stat-total-ziyadah">42</span>
-                            <span class="text-[9px] text-slate-400 block">Total Hal</span>
-                        </div>
-                        <div class="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-                            <span class="text-[9px] text-slate-400 font-bold block uppercase">Muroja'ah</span>
-                            <span class="text-lg font-black text-amber-500" id="stat-total-murojaah">120</span>
-                            <span class="text-[9px] text-slate-400 block">Setor & Partner</span>
-                        </div>
-                        <div class="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-                            <span class="text-[9px] text-slate-400 font-bold block uppercase">Tatsbit</span>
-                            <span class="text-lg font-black text-blue-500" id="stat-total-tatsbit">15</span>
-                            <span class="text-[9px] text-slate-400 block">Halaman</span>
-                        </div>
-                    </div>
-
-                    <!-- Graph 1: Cumulative Juz -->
-                    <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-                        <h4 class="font-bold text-slate-800 text-sm mb-3">Grafik Jumlah Hafalan (Juz)</h4>
-                        <div class="h-44 flex items-center justify-center">
-                            <canvas id="chart-cumulative-juz"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Graph 2: Setoran vs Partner -->
-                    <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-                        <h4 class="font-bold text-slate-800 text-sm mb-3">Ziyadah Harian vs Partner</h4>
-                        <div class="h-44 flex items-center justify-center">
-                            <canvas id="chart-setoran-murojaah"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Graph 3: Tatsbit distribution -->
-                    <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-                        <h4 class="font-bold text-slate-800 text-sm mb-3">Distribusi Nilai Kelancaran</h4>
-                        <div class="h-44 flex items-center justify-center">
-                            <canvas id="chart-tatsbit-grades"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUBPAGE E: PROFILE TAB -->
-                <div id="tab-profile" class="hidden px-5 space-y-6">
-                    <!-- Profile Info -->
-                    <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center relative overflow-hidden">
-                        <div class="absolute top-0 inset-x-0 h-16 bg-gradient-to-r from-sage-500 to-sage-600"></div>
-                        <div class="relative pt-6">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256" id="profile-avatar" class="w-20 h-20 rounded-full border-4 border-white mx-auto shadow-md object-cover" alt="Avatar">
-                            <h3 class="text-lg font-bold text-slate-800 mt-2" id="profile-name">Hamzah Dwi Nugroho</h3>
-                            <p class="text-xs text-slate-400" id="profile-role">Santri - Jaz Academy Jakarta</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mt-6 pt-6 border-t border-slate-100">
-                            <div class="text-left">
-                                <span class="text-[10px] text-slate-400 block">Email Terdaftar</span>
-                                <span class="text-xs font-bold text-slate-700" id="profile-email">hamzah.dwi@gmail.com</span>
-                            </div>
-                            <div class="text-left border-l border-slate-100 pl-4">
-                                <span class="text-[10px] text-slate-400 block">SOP Tingkat Tartil</span>
-                                <span class="text-xs font-bold text-sage-600" id="profile-tartil-level">Menengah</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Super Admin Actions Panel -->
-                    <div id="profile-super-admin-section" class="hidden space-y-3">
-                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Konfigurasi Global (Super-Admin)</h4>
-                        <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4">
-                            <button onclick="openSuperAdminForm('tenant')" class="w-full bg-sage-50 hover:bg-sage-100 text-sage-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center transition">
-                                <span><i class="fa-solid fa-square-plus mr-2"></i> Tambah Tenant Baru</span>
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                            <!-- List of Tenants for simulation -->
-                            <div class="space-y-2 mt-2">
-                                <span class="text-[10px] font-bold text-slate-400 block">Daftar Tenant Terdaftar</span>
-                                <div class="divide-y divide-slate-50 border border-slate-100 rounded-xl overflow-hidden bg-slate-50/50" id="super-tenant-list">
-                                    <!-- Mock list of schools -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Admin Tenant Actions Panel -->
-                    <div id="profile-admin-tenant-section" class="hidden space-y-3">
-                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Kelola Data Tenant (Admin)</h4>
-                        <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
-                            <button onclick="openAdminTenantForm('guru')" class="w-full bg-sage-50 hover:bg-sage-100 text-sage-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center transition">
-                                <span><i class="fa-solid fa-user-plus mr-2"></i> Daftarkan Ustadz / Guru</span>
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                            <button onclick="openAdminTenantForm('murid')" class="w-full bg-sage-50 hover:bg-sage-100 text-sage-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center transition">
-                                <span><i class="fa-solid fa-graduation-cap mr-2"></i> Registrasi Santri Baru</span>
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Common Options & Logout -->
-                    <div class="space-y-2">
-                        <button onclick="simulateLogout()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-3.5 rounded-2xl transition text-xs flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                            <span>Keluar dari Aplikasi</span>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- BOTTOM NAVIGATION BAR (Sticky for main app pages) -->
-        <div id="bottom-nav-bar" class="hidden absolute bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t border-slate-100 px-4 py-3 flex justify-between items-center z-40 rounded-t-3xl shadow-lg">
-            <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 flex-1 text-sage-500 font-bold">
-                <i class="fa-solid fa-house text-lg"></i>
-                <span class="text-[9px]">Beranda</span>
-            </button>
-            <button onclick="switchTab('ziyah')" id="nav-ziyah" class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition">
-                <i class="fa-solid fa-microphone-lines text-lg"></i>
-                <span class="text-[9px]">Ziyadah</span>
-            </button>
-            <button onclick="switchTab('murojaah')" id="nav-murojaah" class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition">
-                <i class="fa-solid fa-book-open-reader text-lg"></i>
-                <span class="text-[9px]">Muroja'ah</span>
-            </button>
-            <button onclick="switchTab('graph')" id="nav-graph" class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition">
-                <i class="fa-solid fa-chart-simple text-lg"></i>
-                <span class="text-[9px]">Grafik</span>
-            </button>
-            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition">
-                <i class="fa-solid fa-user-gear text-lg"></i>
-                <span class="text-[9px]">Profil</span>
-            </button>
-        </div>
-
+      <!-- BOTTOM NAVIGATION BAR (Sticky for main app pages) -->
+      <div
+        id="bottom-nav-bar"
+        class="hidden absolute bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t border-slate-100 px-4 py-3 flex justify-between items-center z-40 rounded-t-3xl shadow-lg"
+      >
+        <button
+          onclick="switchTab('home')"
+          id="nav-home"
+          class="flex flex-col items-center gap-1 flex-1 text-sage-500 font-bold"
+        >
+          <i class="fa-solid fa-house text-lg"></i>
+          <span class="text-[9px]">Beranda</span>
+        </button>
+        <button
+          onclick="switchTab('ziyah')"
+          id="nav-ziyah"
+          class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition"
+        >
+          <i class="fa-solid fa-microphone-lines text-lg"></i>
+          <span class="text-[9px]">Ziyadah</span>
+        </button>
+        <button
+          onclick="switchTab('murojaah')"
+          id="nav-murojaah"
+          class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition"
+        >
+          <i class="fa-solid fa-book-open-reader text-lg"></i>
+          <span class="text-[9px]">Muroja'ah</span>
+        </button>
+        <button
+          onclick="switchTab('graph')"
+          id="nav-graph"
+          class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition"
+        >
+          <i class="fa-solid fa-chart-simple text-lg"></i>
+          <span class="text-[9px]">Grafik</span>
+        </button>
+        <button
+          onclick="switchTab('profile')"
+          id="nav-profile"
+          class="flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition"
+        >
+          <i class="fa-solid fa-user-gear text-lg"></i>
+          <span class="text-[9px]">Profil</span>
+        </button>
+      </div>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Core Mock Database State
-        const MOCK_STUDENTS = [
-            { id: "std-1", name: "Hamzah Dwi Nugroho", partnerId: "std-2", partnerName: "M. Eza Arrafi Riono", totalJuz: 16, currentJuz: 16, currentHal: 3, lastMurojaahPartnerDate: "2026-07-03", tartil: "Menengah" },
-            { id: "std-2", name: "M. Eza Arrafi Riono", partnerId: "std-1", partnerName: "Hamzah Dwi Nugroho", totalJuz: 3, currentJuz: 3, currentHal: 12, lastMurojaahPartnerDate: "", tartil: "Awal" },
-            { id: "std-3", name: "Berwin Ijlal Junior", partnerId: "std-4", partnerName: "Mirza Haby Nurjamal", totalJuz: 2, currentJuz: 28, currentHal: 5, lastMurojaahPartnerDate: "2026-07-03", tartil: "Awal" },
-            { id: "std-4", name: "Mirza Haby Nurjamal", partnerId: "std-3", partnerName: "Berwin Ijlal Junior", totalJuz: 1, currentJuz: 30, currentHal: 8, lastMurojaahPartnerDate: "", tartil: "Akhir" },
-            { id: "std-5", name: "Danar Zenadine Francouer", partnerId: "std-6", partnerName: "Khalifa Arridrla Raffasya", totalJuz: 7, currentJuz: 7, currentHal: 20, lastMurojaahPartnerDate: "2026-07-03", tartil: "Menengah" },
-            { id: "std-6", name: "Khalifa Arridrla Raffasya", partnerId: "std-5", partnerName: "Danar Zenadine Francouer", totalJuz: 4, currentJuz: 29, currentHal: 10, lastMurojaahPartnerDate: "", tartil: "Menengah" }
-        ];
+      // Core Mock Database State
+      const MOCK_STUDENTS = [
+        {
+          id: "std-1",
+          name: "Hamzah Dwi Nugroho",
+          partnerId: "std-2",
+          partnerName: "M. Eza Arrafi Riono",
+          totalJuz: 16,
+          currentJuz: 16,
+          currentHal: 3,
+          lastMurojaahPartnerDate: "2026-07-03",
+          tartil: "Menengah",
+        },
+        {
+          id: "std-2",
+          name: "M. Eza Arrafi Riono",
+          partnerId: "std-1",
+          partnerName: "Hamzah Dwi Nugroho",
+          totalJuz: 3,
+          currentJuz: 3,
+          currentHal: 12,
+          lastMurojaahPartnerDate: "",
+          tartil: "Awal",
+        },
+        {
+          id: "std-3",
+          name: "Berwin Ijlal Junior",
+          partnerId: "std-4",
+          partnerName: "Mirza Haby Nurjamal",
+          totalJuz: 2,
+          currentJuz: 28,
+          currentHal: 5,
+          lastMurojaahPartnerDate: "2026-07-03",
+          tartil: "Awal",
+        },
+        {
+          id: "std-4",
+          name: "Mirza Haby Nurjamal",
+          partnerId: "std-3",
+          partnerName: "Berwin Ijlal Junior",
+          totalJuz: 1,
+          currentJuz: 30,
+          currentHal: 8,
+          lastMurojaahPartnerDate: "",
+          tartil: "Akhir",
+        },
+        {
+          id: "std-5",
+          name: "Danar Zenadine Francouer",
+          partnerId: "std-6",
+          partnerName: "Khalifa Arridrla Raffasya",
+          totalJuz: 7,
+          currentJuz: 7,
+          currentHal: 20,
+          lastMurojaahPartnerDate: "2026-07-03",
+          tartil: "Menengah",
+        },
+        {
+          id: "std-6",
+          name: "Khalifa Arridrla Raffasya",
+          partnerId: "std-5",
+          partnerName: "Danar Zenadine Francouer",
+          totalJuz: 4,
+          currentJuz: 29,
+          currentHal: 10,
+          lastMurojaahPartnerDate: "",
+          tartil: "Menengah",
+        },
+      ];
 
-        const MOCK_TENANTS = [
-            { id: "ten-1", name: "Jaz Academy Jakarta", code: "jaz-jakarta", active: true },
-            { id: "ten-2", name: "Jaz Academy Bandung", code: "jaz-bandung", active: true },
-            { id: "ten-3", name: "Roudhotul Huffadz", code: "roudhotul-huffadz", active: false }
-        ];
+      const MOCK_TENANTS = [
+        {
+          id: "ten-1",
+          name: "Jaz Academy Jakarta",
+          code: "jaz-jakarta",
+          active: true,
+        },
+        {
+          id: "ten-2",
+          name: "Jaz Academy Bandung",
+          code: "jaz-bandung",
+          active: true,
+        },
+        {
+          id: "ten-3",
+          name: "Roudhotul Huffadz",
+          code: "roudhotul-huffadz",
+          active: false,
+        },
+      ];
 
-        // Storage & Offline simulation variables
-        let appState = {
-            currentScreen: "welcome", // welcome, login, main
-            currentTab: "home", // home, ziyadah, murojaah, graph, profile
-            currentRole: "murid", // super-admin, admin-tenant, guru, murid
-            activeSlide: 1,
-            isOnline: true,
-            syncQueue: [],
-            students: [...MOCK_STUDENTS],
-            tenants: [...MOCK_TENANTS],
-            mutabaahData: []
-        };
+      // Storage & Offline simulation variables
+      let appState = {
+        currentScreen: "welcome", // welcome, login, main
+        currentTab: "home", // home, ziyadah, murojaah, graph, profile
+        currentRole: "murid", // super-admin, admin-tenant, guru, murid
+        activeSlide: 1,
+        isOnline: true,
+        syncQueue: [],
+        students: [...MOCK_STUDENTS],
+        tenants: [...MOCK_TENANTS],
+        mutabaahData: [],
+      };
 
-        // Charts handles
-        let chartCumulative = null;
-        let chartSetoran = null;
-        let chartGrades = null;
+      // Charts handles
+      let chartCumulative = null;
+      let chartSetoran = null;
+      let chartGrades = null;
 
-        // Initialize App
-        window.onload = function() {
-            loadLocalData();
-            initCharts();
-            renderApp();
-            
-            // Auto Update time
-            setInterval(() => {
-                const now = new Date();
-                let hours = now.getHours();
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; // key 12 instead of 0
-                document.getElementById('top-time').innerText = `${hours}:${minutes} ${ampm}`;
-            }, 1000);
-        };
+      // Initialize App
+      window.onload = function () {
+        loadLocalData();
+        initCharts();
+        renderApp();
 
-        // Load data from LocalStorage
-        function loadLocalData() {
-            const savedMutabaah = localStorage.getItem("jaz_mutabaah_data");
-            if (savedMutabaah) {
-                appState.mutabaahData = JSON.parse(savedMutabaah);
-            } else {
-                // Populate default initial history based on Page 4 & 5
-                appState.mutabaahData = [
-                    { id: "m-1", studentId: "std-1", studentName: "Hamzah Dwi Nugroho", type: "ziyadah", date: "2026-07-02", juz: 16, fromHal: 3, toHal: 4, score: "B", binNadzor: true, matan: true },
-                    { id: "m-2", studentId: "std-3", studentName: "Berwin Ijlal Junior", type: "ziyadah", date: "2026-07-02", juz: 28, fromHal: 12, toHal: 13, score: "A", binNadzor: false, matan: false },
-                    { id: "m-3", studentId: "std-5", studentName: "Danar Zenadine Francouer", type: "ziyadah", date: "2026-07-02", juz: 7, fromHal: 8, toHal: 9, score: "B", binNadzor: true, matan: true },
-                    { id: "m-4", studentId: "std-1", studentName: "Hamzah Dwi Nugroho", type: "tatsbit", date: "2026-07-02", juz: 16, fromHal: 1, toHal: 5, score: "A", binNadzor: true, matan: true },
-                    { id: "m-5", studentId: "std-5", studentName: "Danar Zenadine Francouer", type: "tatsbit", date: "2026-07-02", juz: 7, fromHal: 19, toHal: 20, score: "B+", binNadzor: true, matan: true }
-                ];
-                saveToLocalStorage();
-            }
+        // Auto Update time
+        setInterval(() => {
+          const now = new Date();
+          let hours = now.getHours();
+          const minutes = String(now.getMinutes()).padStart(2, "0");
+          const ampm = hours >= 12 ? "PM" : "AM";
+          hours = hours % 12;
+          hours = hours ? hours : 12; // key 12 instead of 0
+          document.getElementById("top-time").innerText =
+            `${hours}:${minutes} ${ampm}`;
+        }, 1000);
+      };
 
-            const savedQueue = localStorage.getItem("jaz_sync_queue");
-            if (savedQueue) {
-                appState.syncQueue = JSON.parse(savedQueue);
-                updateSyncQueueUI();
-            }
+      // Load data from LocalStorage
+      function loadLocalData() {
+        const savedMutabaah = localStorage.getItem("jaz_mutabaah_data");
+        if (savedMutabaah) {
+          appState.mutabaahData = JSON.parse(savedMutabaah);
+        } else {
+          // Populate default initial history based on Page 4 & 5
+          appState.mutabaahData = [
+            {
+              id: "m-1",
+              studentId: "std-1",
+              studentName: "Hamzah Dwi Nugroho",
+              type: "ziyadah",
+              date: "2026-07-02",
+              juz: 16,
+              fromHal: 3,
+              toHal: 4,
+              score: "B",
+              binNadzor: true,
+              matan: true,
+            },
+            {
+              id: "m-2",
+              studentId: "std-3",
+              studentName: "Berwin Ijlal Junior",
+              type: "ziyadah",
+              date: "2026-07-02",
+              juz: 28,
+              fromHal: 12,
+              toHal: 13,
+              score: "A",
+              binNadzor: false,
+              matan: false,
+            },
+            {
+              id: "m-3",
+              studentId: "std-5",
+              studentName: "Danar Zenadine Francouer",
+              type: "ziyadah",
+              date: "2026-07-02",
+              juz: 7,
+              fromHal: 8,
+              toHal: 9,
+              score: "B",
+              binNadzor: true,
+              matan: true,
+            },
+            {
+              id: "m-4",
+              studentId: "std-1",
+              studentName: "Hamzah Dwi Nugroho",
+              type: "tatsbit",
+              date: "2026-07-02",
+              juz: 16,
+              fromHal: 1,
+              toHal: 5,
+              score: "A",
+              binNadzor: true,
+              matan: true,
+            },
+            {
+              id: "m-5",
+              studentId: "std-5",
+              studentName: "Danar Zenadine Francouer",
+              type: "tatsbit",
+              date: "2026-07-02",
+              juz: 7,
+              fromHal: 19,
+              toHal: 20,
+              score: "B+",
+              binNadzor: true,
+              matan: true,
+            },
+          ];
+          saveToLocalStorage();
         }
 
-        function saveToLocalStorage() {
-            localStorage.setItem("jaz_mutabaah_data", JSON.stringify(appState.mutabaahData));
-            localStorage.setItem("jaz_sync_queue", JSON.stringify(appState.syncQueue));
+        const savedQueue = localStorage.getItem("jaz_sync_queue");
+        if (savedQueue) {
+          appState.syncQueue = JSON.parse(savedQueue);
+          updateSyncQueueUI();
         }
+      }
 
-        // Main Rendering Switchboard
-        function renderApp() {
-            // Hide all main screens
-            document.getElementById("screen-welcome").classList.add("hidden");
-            document.getElementById("screen-login").classList.add("hidden");
-            document.getElementById("app-main-pages").classList.add("hidden");
-            document.getElementById("bottom-nav-bar").classList.add("hidden");
+      function saveToLocalStorage() {
+        localStorage.setItem(
+          "jaz_mutabaah_data",
+          JSON.stringify(appState.mutabaahData),
+        );
+        localStorage.setItem(
+          "jaz_sync_queue",
+          JSON.stringify(appState.syncQueue),
+        );
+      }
 
-            if (appState.currentScreen === "welcome") {
-                document.getElementById("screen-welcome").classList.remove("hidden");
-            } else if (appState.currentScreen === "login") {
-                document.getElementById("screen-login").classList.remove("hidden");
-            } else if (appState.currentScreen === "main") {
-                document.getElementById("app-main-pages").classList.remove("hidden");
-                document.getElementById("bottom-nav-bar").classList.remove("hidden");
-                renderDashboardHero();
-                renderSelectedTab();
-            }
+      // Main Rendering Switchboard
+      function renderApp() {
+        // Hide all main screens
+        document.getElementById("screen-welcome").classList.add("hidden");
+        document.getElementById("screen-login").classList.add("hidden");
+        document.getElementById("app-main-pages").classList.add("hidden");
+        document.getElementById("bottom-nav-bar").classList.add("hidden");
+
+        if (appState.currentScreen === "welcome") {
+          document.getElementById("screen-welcome").classList.remove("hidden");
+        } else if (appState.currentScreen === "login") {
+          document.getElementById("screen-login").classList.remove("hidden");
+        } else if (appState.currentScreen === "main") {
+          document.getElementById("app-main-pages").classList.remove("hidden");
+          document.getElementById("bottom-nav-bar").classList.remove("hidden");
+          renderDashboardHero();
+          renderSelectedTab();
         }
+      }
 
-        // Onboarding Welcome Slideshow Carousel
-        function showSlide(num) {
-            appState.activeSlide = num;
-            document.querySelectorAll(".carousel-slide").forEach(s => s.classList.add("hidden"));
-            document.getElementById(`slide-${num}`).classList.remove("hidden");
+      // Onboarding Welcome Slideshow Carousel
+      function showSlide(num) {
+        appState.activeSlide = num;
+        document
+          .querySelectorAll(".carousel-slide")
+          .forEach((s) => s.classList.add("hidden"));
+        document.getElementById(`slide-${num}`).classList.remove("hidden");
 
-            // Update Dot indicators
-            const dots = document.getElementById("carousel-dots").children;
-            for (let i = 0; i < dots.length; i++) {
-                if (i === num - 1) {
-                    dots[i].className = "w-2.5 h-2.5 rounded-full bg-sage-500 cursor-pointer";
-                } else {
-                    dots[i].className = "w-2.5 h-2.5 rounded-full bg-sage-200 cursor-pointer";
-                }
-            }
+        // Update Dot indicators
+        const dots = document.getElementById("carousel-dots").children;
+        for (let i = 0; i < dots.length; i++) {
+          if (i === num - 1) {
+            dots[i].className =
+              "w-2.5 h-2.5 rounded-full bg-sage-500 cursor-pointer";
+          } else {
+            dots[i].className =
+              "w-2.5 h-2.5 rounded-full bg-sage-200 cursor-pointer";
+          }
         }
+      }
 
-        function nextSlide() {
-            if (appState.activeSlide < 3) {
-                showSlide(appState.activeSlide + 1);
-            } else {
-                goToLogin();
-            }
+      function nextSlide() {
+        if (appState.activeSlide < 3) {
+          showSlide(appState.activeSlide + 1);
+        } else {
+          goToLogin();
         }
+      }
 
-        function goToLogin() {
-            appState.currentScreen = "login";
-            renderApp();
-        }
+      function goToLogin() {
+        appState.currentScreen = "login";
+        renderApp();
+      }
 
-        // Demo Role Selection
-        function selectDemoRole(role) {
-            appState.currentRole = role;
-            document.querySelectorAll(".role-btn").forEach(btn => {
-                btn.className = "role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30";
-            });
-            const activeBtn = document.getElementById(`role-${role}`);
-            activeBtn.className = "role-btn bg-sage-500 border-2 border-sage-500 text-white p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition shadow-lg shadow-sage-500/10";
-        }
+      // Demo Role Selection
+      function selectDemoRole(role) {
+        appState.currentRole = role;
+        document.querySelectorAll(".role-btn").forEach((btn) => {
+          btn.className =
+            "role-btn bg-white border-2 border-sage-500/10 text-slate-700 p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition hover:border-sage-500/30";
+        });
+        const activeBtn = document.getElementById(`role-${role}`);
+        activeBtn.className =
+          "role-btn bg-sage-500 border-2 border-sage-500 text-white p-4 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-bold transition shadow-lg shadow-sage-500/10";
+      }
 
-        function simulateGoogleLogin() {
-            appState.currentScreen = "main";
-            appState.currentTab = "home";
-            renderApp();
-            showModal("success", "Login Berhasil", `Selamat datang kembali! Peran Anda terdeteksi sebagai ${appState.currentRole.toUpperCase()}.`);
-        }
+      function simulateGoogleLogin() {
+        appState.currentScreen = "main";
+        appState.currentTab = "home";
+        renderApp();
+        showModal(
+          "success",
+          "Login Berhasil",
+          `Selamat datang kembali! Peran Anda terdeteksi sebagai ${appState.currentRole.toUpperCase()}.`,
+        );
+      }
 
-        function simulateLogout() {
-            appState.currentScreen = "login";
-            renderApp();
-        }
+      function simulateLogout() {
+        appState.currentScreen = "login";
+        renderApp();
+      }
 
-        // Build Profile-Specific Dashboard Cards
-        function renderDashboardHero() {
-            const heroContainer = document.getElementById("dashboard-hero");
-            let content = "";
+      // Build Profile-Specific Dashboard Cards
+      function renderDashboardHero() {
+        const heroContainer = document.getElementById("dashboard-hero");
+        let content = "";
 
-            if (appState.currentRole === "super-admin") {
-                content = `
+        if (appState.currentRole === "super-admin") {
+          content = `
                     <div class="bg-gradient-to-br from-slate-800 to-slate-950 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
                         <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl"><i class="fa-solid fa-server"></i></div>
                         <span class="bg-amber-400 text-slate-950 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">Super Administrator</span>
@@ -657,8 +1190,8 @@
                         <p class="text-slate-400 text-xs mt-1">Sistem SaaS Multi-Tenant Jaz Academy</p>
                     </div>
                 `;
-            } else if (appState.currentRole === "admin-tenant") {
-                content = `
+        } else if (appState.currentRole === "admin-tenant") {
+          content = `
                     <div class="bg-gradient-to-br from-sage-500 to-sage-700 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
                         <div class="absolute -right-10 -bottom-10 opacity-15 text-9xl"><i class="fa-solid fa-school"></i></div>
                         <span class="bg-white/20 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">Admin Sekolah</span>
@@ -666,8 +1199,8 @@
                         <p class="text-sage-100 text-xs mt-1">Periode Semester Ganjil 2025/2026</p>
                     </div>
                 `;
-            } else if (appState.currentRole === "guru") {
-                content = `
+        } else if (appState.currentRole === "guru") {
+          content = `
                     <div class="bg-gradient-to-br from-sage-600 to-sage-800 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
                         <div class="absolute -right-10 -bottom-10 opacity-15 text-9xl"><i class="fa-solid fa-chalkboard-user"></i></div>
                         <span class="bg-emerald-400 text-slate-950 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">Ustadz Pengampu</span>
@@ -675,16 +1208,16 @@
                         <p class="text-sage-100 text-xs mt-1">Halaqah Tahfidz Al-Mulk (6 Santri)</p>
                     </div>
                 `;
-            } else {
-                // Murid
-                const student = appState.students[0]; // Hamzah
-                content = `
+        } else {
+          // Murid
+          const student = appState.students[0]; // Hamzah
+          content = `
                     <div class="bg-gradient-to-br from-sage-500 to-sage-600 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
                         <div class="absolute -right-8 -bottom-8 opacity-15 text-8xl"><i class="fa-solid fa-book-quran"></i></div>
                         <div class="flex items-center gap-3 mb-3">
                             <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=128" class="w-12 h-12 rounded-full border-2 border-white/50 object-cover shadow-sm">
                             <div>
-                                <span class="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Santri Utama</span>
+                                <span class="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Santri Alquran</span>
                                 <h2 class="text-base font-extrabold leading-tight">${student.name}</h2>
                             </div>
                         </div>
@@ -700,55 +1233,57 @@
                         </div>
                     </div>
                 `;
-            }
-            heroContainer.innerHTML = content;
         }
+        heroContainer.innerHTML = content;
+      }
 
-        // Switch between major tabs
-        function switchTab(tabId) {
-            appState.currentTab = tabId;
-            
-            // Toggle active classes on bottom navigation
-            document.querySelectorAll("#bottom-nav-bar button").forEach(btn => {
-                btn.className = "flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition";
-            });
-            document.getElementById(`nav-${tabId}`).className = "flex flex-col items-center gap-1 flex-1 text-sage-500 font-bold";
+      // Switch between major tabs
+      function switchTab(tabId) {
+        appState.currentTab = tabId;
 
-            // Hide all subpages
-            document.getElementById("tab-home").classList.add("hidden");
-            document.getElementById("tab-ziyah").classList.add("hidden");
-            document.getElementById("tab-murojaah").classList.add("hidden");
-            document.getElementById("tab-graph").classList.add("hidden");
-            document.getElementById("tab-profile").classList.add("hidden");
+        // Toggle active classes on bottom navigation
+        document.querySelectorAll("#bottom-nav-bar button").forEach((btn) => {
+          btn.className =
+            "flex flex-col items-center gap-1 flex-1 text-slate-400 hover:text-sage-500 transition";
+        });
+        document.getElementById(`nav-${tabId}`).className =
+          "flex flex-col items-center gap-1 flex-1 text-sage-500 font-bold";
 
-            // Show active subpage
-            document.getElementById(`tab-${tabId}`).classList.remove("hidden");
-            
-            renderSelectedTab();
+        // Hide all subpages
+        document.getElementById("tab-home").classList.add("hidden");
+        document.getElementById("tab-ziyah").classList.add("hidden");
+        document.getElementById("tab-murojaah").classList.add("hidden");
+        document.getElementById("tab-graph").classList.add("hidden");
+        document.getElementById("tab-profile").classList.add("hidden");
+
+        // Show active subpage
+        document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+
+        renderSelectedTab();
+      }
+
+      // Render contents of selected tab dynamically
+      function renderSelectedTab() {
+        if (appState.currentTab === "home") {
+          renderHomeDashboard();
+        } else if (appState.currentTab === "ziyah") {
+          renderZiyadahTab();
+        } else if (appState.currentTab === "murojaah") {
+          renderMurojaahTab();
+        } else if (appState.currentTab === "graph") {
+          updateCharts();
+        } else if (appState.currentTab === "profile") {
+          renderProfileTab();
         }
+      }
 
-        // Render contents of selected tab dynamically
-        function renderSelectedTab() {
-            if (appState.currentTab === "home") {
-                renderHomeDashboard();
-            } else if (appState.currentTab === "ziyah") {
-                renderZiyadahTab();
-            } else if (appState.currentTab === "murojaah") {
-                renderMurojaahTab();
-            } else if (appState.currentTab === "graph") {
-                updateCharts();
-            } else if (appState.currentTab === "profile") {
-                renderProfileTab();
-            }
-        }
+      // HOME / DASHBOARD TAB BUILDER
+      function renderHomeDashboard() {
+        const container = document.getElementById("dynamic-dashboard-content");
+        let content = "";
 
-        // HOME / DASHBOARD TAB BUILDER
-        function renderHomeDashboard() {
-            const container = document.getElementById("dynamic-dashboard-content");
-            let content = "";
-
-            if (appState.currentRole === "super-admin") {
-                content = `
+        if (appState.currentRole === "super-admin") {
+          content = `
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-3">
                             <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
@@ -778,8 +1313,8 @@
                         </div>
                     </div>
                 `;
-            } else if (appState.currentRole === "admin-tenant") {
-                content = `
+        } else if (appState.currentRole === "admin-tenant") {
+          content = `
                     <div class="space-y-4">
                         <div class="grid grid-cols-3 gap-2.5">
                             <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm text-center">
@@ -822,8 +1357,8 @@
                         </div>
                     </div>
                 `;
-            } else if (appState.currentRole === "guru") {
-                content = `
+        } else if (appState.currentRole === "guru") {
+          content = `
                     <div class="space-y-4">
                         <!-- Quick actions for Guru -->
                         <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
@@ -855,12 +1390,13 @@
                         </div>
                     </div>
                 `;
-            } else {
-                // Murid
-                const student = appState.students[0]; // Hamzah
-                const isMurojaahPartnerDone = student.lastMurojaahPartnerDate === "2026-07-03";
-                
-                content = `
+        } else {
+          // Murid
+          const student = appState.students[0]; // Hamzah
+          const isMurojaahPartnerDone =
+            student.lastMurojaahPartnerDate === "2026-07-03";
+
+          content = `
                     <div class="space-y-4">
                         <!-- Circular progress and details -->
                         <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
@@ -868,8 +1404,9 @@
                                 <h4 class="font-bold text-slate-800 text-sm">Status SOP Hari Ini</h4>
                                 <p class="text-[11px] text-slate-400">Harap selesaikan muraja'ah dengan partner Anda terlebih dahulu.</p>
                                 <div class="pt-2">
-                                    ${isMurojaahPartnerDone 
-                                        ? '<span class="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2.5 py-1 rounded-full"><i class="fa-solid fa-circle-check"></i> Partner Terverifikasi</span>' 
+                                    ${
+                                      isMurojaahPartnerDone
+                                        ? '<span class="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2.5 py-1 rounded-full"><i class="fa-solid fa-circle-check"></i> Partner Terverifikasi</span>'
                                         : '<span class="bg-rose-100 text-rose-700 font-extrabold text-[10px] px-2.5 py-1 rounded-full"><i class="fa-solid fa-triangle-exclamation"></i> Menunggu Setor Partner</span>'
                                     }
                                 </div>
@@ -904,63 +1441,72 @@
                         </div>
                     </div>
                 `;
-            }
+        }
 
-            container.innerHTML = content;
+        container.innerHTML = content;
 
-            // Generate Guru queue dynamically if on Guru dashboard
-            if (appState.currentRole === "guru") {
-                const queueContainer = document.getElementById("queue-container");
-                let queueHtml = "";
-                appState.students.forEach(std => {
-                    const isPartnerVerified = std.lastMurojaahPartnerDate === "2026-07-03";
-                    queueHtml += `
+        // Generate Guru queue dynamically if on Guru dashboard
+        if (appState.currentRole === "guru") {
+          const queueContainer = document.getElementById("queue-container");
+          let queueHtml = "";
+          appState.students.forEach((std) => {
+            const isPartnerVerified =
+              std.lastMurojaahPartnerDate === "2026-07-03";
+            queueHtml += `
                         <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex justify-between items-center">
                             <div>
                                 <span class="font-extrabold text-xs text-slate-700 block">${std.name}</span>
                                 <span class="text-[10px] text-slate-400 block">Hafalan Saat Ini: Juz ${std.currentJuz} (${std.tartil})</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                ${isPartnerVerified 
-                                    ? '<span class="bg-emerald-100 text-emerald-700 font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase">Siap Ziyadah</span>' 
+                                ${
+                                  isPartnerVerified
+                                    ? '<span class="bg-emerald-100 text-emerald-700 font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase">Siap Ziyadah</span>'
                                     : '<span class="bg-rose-100 text-rose-700 font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase">Kunci Partner</span>'
                                 }
                             </div>
                         </div>
                     `;
-                });
-                queueContainer.innerHTML = queueHtml;
-            }
+          });
+          queueContainer.innerHTML = queueHtml;
+        }
+      }
+
+      // ZIYADAH SUBPAGE BUILDER
+      function renderZiyadahTab() {
+        // Adjust header badge role indicator
+        document.getElementById("ziyadah-role-badge").innerText =
+          appState.currentRole.toUpperCase() + " Mode";
+
+        // If murid is viewed, hide floating entry actions
+        const actionsHeader = document.getElementById("guru-ziyadah-actions");
+        if (
+          appState.currentRole === "murid" ||
+          appState.currentRole === "super-admin" ||
+          appState.currentRole === "admin-tenant"
+        ) {
+          actionsHeader.classList.add("hidden");
+        } else {
+          actionsHeader.classList.remove("hidden");
         }
 
-        // ZIYADAH SUBPAGE BUILDER
-        function renderZiyadahTab() {
-            // Adjust header badge role indicator
-            document.getElementById("ziyadah-role-badge").innerText = appState.currentRole.toUpperCase() + " Mode";
-            
-            // If murid is viewed, hide floating entry actions
-            const actionsHeader = document.getElementById("guru-ziyadah-actions");
-            if (appState.currentRole === "murid" || appState.currentRole === "super-admin" || appState.currentRole === "admin-tenant") {
-                actionsHeader.classList.add("hidden");
-            } else {
-                actionsHeader.classList.remove("hidden");
-            }
+        renderZiyadahTableContents();
+      }
 
-            renderZiyadahTableContents();
+      function renderZiyadahTableContents() {
+        const tableBody = document.getElementById("ziyadah-table-body");
+        let rows = "";
+
+        // If Murid mode: Filter only own records. If Guru mode: Show all.
+        let filterData = appState.mutabaahData.filter(
+          (d) => d.type === "ziyadah",
+        );
+        if (appState.currentRole === "murid") {
+          filterData = filterData.filter((d) => d.studentId === "std-1");
         }
 
-        function renderZiyadahTableContents() {
-            const tableBody = document.getElementById("ziyadah-table-body");
-            let rows = "";
-
-            // If Murid mode: Filter only own records. If Guru mode: Show all.
-            let filterData = appState.mutabaahData.filter(d => d.type === "ziyadah");
-            if (appState.currentRole === "murid") {
-                filterData = filterData.filter(d => d.studentId === "std-1");
-            }
-
-            filterData.forEach(row => {
-                rows += `
+        filterData.forEach((row) => {
+          rows += `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-4 py-3.5 font-bold text-slate-700">
                             ${row.studentName}
@@ -971,8 +1517,9 @@
                             <span class="text-[10px] text-slate-400 block">Hal ${row.fromHal} s/d ${row.toHal}</span>
                         </td>
                         <td class="px-4 py-3.5 text-center">
-                            ${row.binNadzor 
-                                ? '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check"></i> Selesai</span>' 
+                            ${
+                              row.binNadzor
+                                ? '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check"></i> Selesai</span>'
                                 : '<span class="bg-slate-100 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full">Belum</span>'
                             }
                         </td>
@@ -981,38 +1528,44 @@
                         </td>
                     </tr>
                 `;
-            });
+        });
 
-            if (filterData.length === 0) {
-                rows = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">Belum ada riwayat setoran ziyadah harian</td></tr>`;
-            }
-
-            tableBody.innerHTML = rows;
+        if (filterData.length === 0) {
+          rows = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">Belum ada riwayat setoran ziyadah harian</td></tr>`;
         }
 
-        function filterZiyadahTable() {
-            const searchQuery = document.getElementById("ziyadah-search").value.toLowerCase();
-            const filterJuz = document.getElementById("ziyadah-filter-juz").value;
-            const tableBody = document.getElementById("ziyadah-table-body");
-            let rows = "";
+        tableBody.innerHTML = rows;
+      }
 
-            let filterData = appState.mutabaahData.filter(d => d.type === "ziyadah");
-            if (appState.currentRole === "murid") {
-                filterData = filterData.filter(d => d.studentId === "std-1");
-            }
+      function filterZiyadahTable() {
+        const searchQuery = document
+          .getElementById("ziyadah-search")
+          .value.toLowerCase();
+        const filterJuz = document.getElementById("ziyadah-filter-juz").value;
+        const tableBody = document.getElementById("ziyadah-table-body");
+        let rows = "";
 
-            // Apply search filter
-            if (searchQuery) {
-                filterData = filterData.filter(d => d.studentName.toLowerCase().includes(searchQuery));
-            }
+        let filterData = appState.mutabaahData.filter(
+          (d) => d.type === "ziyadah",
+        );
+        if (appState.currentRole === "murid") {
+          filterData = filterData.filter((d) => d.studentId === "std-1");
+        }
 
-            // Apply Juz filter
-            if (filterJuz) {
-                filterData = filterData.filter(d => d.juz.toString() === filterJuz);
-            }
+        // Apply search filter
+        if (searchQuery) {
+          filterData = filterData.filter((d) =>
+            d.studentName.toLowerCase().includes(searchQuery),
+          );
+        }
 
-            filterData.forEach(row => {
-                rows += `
+        // Apply Juz filter
+        if (filterJuz) {
+          filterData = filterData.filter((d) => d.juz.toString() === filterJuz);
+        }
+
+        filterData.forEach((row) => {
+          rows += `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-4 py-3.5 font-bold text-slate-700">
                             ${row.studentName}
@@ -1023,8 +1576,9 @@
                             <span class="text-[10px] text-slate-400 block">Hal ${row.fromHal} s/d ${row.toHal}</span>
                         </td>
                         <td class="px-4 py-3.5 text-center">
-                            ${row.binNadzor 
-                                ? '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check"></i> Selesai</span>' 
+                            ${
+                              row.binNadzor
+                                ? '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check"></i> Selesai</span>'
                                 : '<span class="bg-slate-100 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full">Belum</span>'
                             }
                         </td>
@@ -1033,33 +1587,33 @@
                         </td>
                     </tr>
                 `;
-            });
+        });
 
-            if (filterData.length === 0) {
-                rows = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">Data mutabaah tidak ditemukan</td></tr>`;
-            }
-
-            tableBody.innerHTML = rows;
+        if (filterData.length === 0) {
+          rows = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">Data mutabaah tidak ditemukan</td></tr>`;
         }
 
-        // Form trigger for Ziyadah
-        function openZiyadahForm(formType) {
-            const formContainer = document.getElementById("ziyadah-form-container");
-            const formTitle = document.getElementById("ziyadah-form-title");
-            const formInner = document.getElementById("form-inner-content");
+        tableBody.innerHTML = rows;
+      }
 
-            formContainer.classList.remove("hidden");
+      // Form trigger for Ziyadah
+      function openZiyadahForm(formType) {
+        const formContainer = document.getElementById("ziyadah-form-container");
+        const formTitle = document.getElementById("ziyadah-form-title");
+        const formInner = document.getElementById("form-inner-content");
 
-            if (formType === "setoran") {
-                formTitle.innerText = "Input Setoran Hafalan Baru (Ziyadah)";
-                
-                // Render dropdown of students
-                let studentOptions = "";
-                appState.students.forEach(std => {
-                    studentOptions += `<option value="${std.id}">${std.name}</option>`;
-                });
+        formContainer.classList.remove("hidden");
 
-                formInner.innerHTML = `
+        if (formType === "setoran") {
+          formTitle.innerText = "Input Setoran Hafalan Baru (Ziyadah)";
+
+          // Render dropdown of students
+          let studentOptions = "";
+          appState.students.forEach((std) => {
+            studentOptions += `<option value="${std.id}">${std.name}</option>`;
+          });
+
+          formInner.innerHTML = `
                     <form onsubmit="handleZiyadahSubmit(event)" class="space-y-3.5 text-xs">
                         <div>
                             <label class="block text-slate-700 font-bold mb-1.5">Pilih Santri</label>
@@ -1104,9 +1658,9 @@
                         </button>
                     </form>
                 `;
-            } else if (formType === "talaqqi") {
-                formTitle.innerText = "SOP Talaqqi & Takrir 20x";
-                formInner.innerHTML = `
+        } else if (formType === "talaqqi") {
+          formTitle.innerText = "SOP Talaqqi & Takrir 20x";
+          formInner.innerHTML = `
                     <div class="text-slate-600 text-xs space-y-3">
                         <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3.5 rounded-2xl">
                             <p class="font-bold"><i class="fa-solid fa-bell"></i> Prosedur SOP Talaqqi:</p>
@@ -1115,7 +1669,7 @@
                         <div class="bg-white border border-slate-100 p-4 rounded-3xl shadow-sm space-y-3">
                             <label class="block text-slate-700 font-bold">Verifikasi Talaqqi & Takrir 20x:</label>
                             <select id="talaqqi-student-id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none">
-                                ${appState.students.map(std => `<option value="${std.id}">${std.name}</option>`).join('')}
+                                ${appState.students.map((std) => `<option value="${std.id}">${std.name}</option>`).join("")}
                             </select>
                             <div class="flex items-center gap-2 pt-1">
                                 <input type="checkbox" id="talaqqi-confirm" class="w-4 h-4 text-sage-500 rounded-md">
@@ -1127,9 +1681,9 @@
                         </div>
                     </div>
                 `;
-            } else if (formType === "binnadzor") {
-                formTitle.innerText = "SOP Muraja'ah Bin-Nadzor";
-                formInner.innerHTML = `
+        } else if (formType === "binnadzor") {
+          formTitle.innerText = "SOP Muraja'ah Bin-Nadzor";
+          formInner.innerHTML = `
                     <div class="text-slate-600 text-xs space-y-3">
                         <div class="bg-blue-50 border border-blue-200 text-blue-800 p-3.5 rounded-2xl">
                             <p class="font-bold"><i class="fa-solid fa-eye"></i> Syarat Selesai Halaqah Ziyadah:</p>
@@ -1138,7 +1692,7 @@
                         <div class="bg-white border border-slate-100 p-4 rounded-3xl shadow-sm space-y-3">
                             <label class="block text-slate-700 font-bold">Pilih Santri yang Menyelesaikan:</label>
                             <select id="binnadzor-student-id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none">
-                                ${appState.students.map(std => `<option value="${std.id}">${std.name}</option>`).join('')}
+                                ${appState.students.map((std) => `<option value="${std.id}">${std.name}</option>`).join("")}
                             </select>
                             <div class="flex items-center gap-2 pt-1">
                                 <input type="checkbox" id="binnadzor-confirm" class="w-4 h-4 text-sage-500 rounded-md">
@@ -1150,133 +1704,174 @@
                         </div>
                     </div>
                 `;
-            }
+        }
+      }
+
+      // Form Submissions and Business Rules
+      function handleZiyadahSubmit(event) {
+        event.preventDefault();
+
+        const studentId = document.getElementById("ziyadah-student-id").value;
+        const targetStudent = appState.students.find((s) => s.id === studentId);
+
+        // BUSINESS RULE VALIDATION: Lock Ziyadah if Murojaah Partner has not been completed today!
+        const isPartnerMurojaahDone =
+          targetStudent.lastMurojaahPartnerDate === "2026-07-03";
+        if (!isPartnerMurojaahDone) {
+          showModal(
+            "error",
+            "Akses Setoran Terkunci",
+            `Sesuai SOP Jaz Academy, ${targetStudent.name} belum menyetorkan Muroja'ah Partner harian ke temannya. Setoran hafalan baru ditangguhkan.`,
+          );
+          return;
         }
 
-        // Form Submissions and Business Rules
-        function handleZiyadahSubmit(event) {
-            event.preventDefault();
-
-            const studentId = document.getElementById("ziyadah-student-id").value;
-            const targetStudent = appState.students.find(s => s.id === studentId);
-
-            // BUSINESS RULE VALIDATION: Lock Ziyadah if Murojaah Partner has not been completed today!
-            const isPartnerMurojaahDone = targetStudent.lastMurojaahPartnerDate === "2026-07-03";
-            if (!isPartnerMurojaahDone) {
-                showModal("error", "Akses Setoran Terkunci", `Sesuai SOP Jaz Academy, ${targetStudent.name} belum menyetorkan Muroja'ah Partner harian ke temannya. Setoran hafalan baru ditangguhkan.`);
-                return;
-            }
-
-            const score = document.getElementById("ziyadah-score").value;
-            // BUSINESS RULE: If score is D (or fail to fix 1 error), cannot go to next page
-            if (score === "D") {
-                showModal("warning", "Peringatan SOP", "Sesuai SOP, jika terdapat kesalahan bacaan yang tidak dapat diperbaiki sendiri oleh santri, maka kelulusan halaman ditunda. Santri harus mengulangi halaman tersebut besok.");
-            }
-
-            const juz = parseInt(document.getElementById("ziyadah-juz").value);
-            const fromHal = parseInt(document.getElementById("ziyadah-from").value);
-            const toHal = parseInt(document.getElementById("ziyadah-to").value);
-            const hasMatan = document.getElementById("ziyadah-matan").checked;
-
-            // Save Entry
-            const newRecord = {
-                id: "m-" + Date.now(),
-                studentId: studentId,
-                studentName: targetStudent.name,
-                type: "ziyadah",
-                date: new Date().toISOString().split('T')[0],
-                juz: juz,
-                fromHal: fromHal,
-                toHal: toHal,
-                score: score,
-                binNadzor: false, // will be confirmed via separate form
-                matan: hasMatan
-            };
-
-            // Update student records
-            targetStudent.currentJuz = juz;
-            targetStudent.currentHal = toHal;
-
-            saveEntryToDatabase(newRecord);
-            closeWorkForms();
-            renderZiyadahTableContents();
-            showModal("success", "Setoran Disimpan", `Berhasil mendokumentasikan setoran hafalan baru untuk ${targetStudent.name}.`);
+        const score = document.getElementById("ziyadah-score").value;
+        // BUSINESS RULE: If score is D (or fail to fix 1 error), cannot go to next page
+        if (score === "D") {
+          showModal(
+            "warning",
+            "Peringatan SOP",
+            "Sesuai SOP, jika terdapat kesalahan bacaan yang tidak dapat diperbaiki sendiri oleh santri, maka kelulusan halaman ditunda. Santri harus mengulangi halaman tersebut besok.",
+          );
         }
 
-        function saveTalaqqiVerification() {
-            const confirmCheckbox = document.getElementById("talaqqi-confirm");
-            if (!confirmCheckbox.checked) {
-                showModal("warning", "Konfirmasi Diperlukan", "Harap centang konfirmasi bahwa murid telah melakukan pembacaan Talaqqi & Takrir sebanyak 20 kali.");
-                return;
-            }
-            const studentId = document.getElementById("talaqqi-student-id").value;
-            const targetStudent = appState.students.find(s => s.id === studentId);
+        const juz = parseInt(document.getElementById("ziyadah-juz").value);
+        const fromHal = parseInt(document.getElementById("ziyadah-from").value);
+        const toHal = parseInt(document.getElementById("ziyadah-to").value);
+        const hasMatan = document.getElementById("ziyadah-matan").checked;
 
-            closeWorkForms();
-            showModal("success", "Talaqqi Terverifikasi", `Prosedur Talaqqi + Takrir 20x untuk ${targetStudent.name} berhasil didokumentasikan.`);
+        // Save Entry
+        const newRecord = {
+          id: "m-" + Date.now(),
+          studentId: studentId,
+          studentName: targetStudent.name,
+          type: "ziyadah",
+          date: new Date().toISOString().split("T")[0],
+          juz: juz,
+          fromHal: fromHal,
+          toHal: toHal,
+          score: score,
+          binNadzor: false, // will be confirmed via separate form
+          matan: hasMatan,
+        };
+
+        // Update student records
+        targetStudent.currentJuz = juz;
+        targetStudent.currentHal = toHal;
+
+        saveEntryToDatabase(newRecord);
+        closeWorkForms();
+        renderZiyadahTableContents();
+        showModal(
+          "success",
+          "Setoran Disimpan",
+          `Berhasil mendokumentasikan setoran hafalan baru untuk ${targetStudent.name}.`,
+        );
+      }
+
+      function saveTalaqqiVerification() {
+        const confirmCheckbox = document.getElementById("talaqqi-confirm");
+        if (!confirmCheckbox.checked) {
+          showModal(
+            "warning",
+            "Konfirmasi Diperlukan",
+            "Harap centang konfirmasi bahwa murid telah melakukan pembacaan Talaqqi & Takrir sebanyak 20 kali.",
+          );
+          return;
+        }
+        const studentId = document.getElementById("talaqqi-student-id").value;
+        const targetStudent = appState.students.find((s) => s.id === studentId);
+
+        closeWorkForms();
+        showModal(
+          "success",
+          "Talaqqi Terverifikasi",
+          `Prosedur Talaqqi + Takrir 20x untuk ${targetStudent.name} berhasil didokumentasikan.`,
+        );
+      }
+
+      function saveBinNadzorVerification() {
+        const confirmCheckbox = document.getElementById("binnadzor-confirm");
+        if (!confirmCheckbox.checked) {
+          showModal(
+            "warning",
+            "Konfirmasi Diperlukan",
+            "Harap verifikasi bahwa murid telah membaca melihat mushaf minimal 10 halaman.",
+          );
+          return;
+        }
+        const studentId = document.getElementById("binnadzor-student-id").value;
+        const targetStudent = appState.students.find((s) => s.id === studentId);
+
+        // Find the last Ziyadah record of this student for today and flag binNadzor as true
+        const todayStr = new Date().toISOString().split("T")[0];
+        const records = appState.mutabaahData.filter(
+          (r) =>
+            r.studentId === studentId &&
+            r.type === "ziyadah" &&
+            r.date === todayStr,
+        );
+        if (records.length > 0) {
+          records[0].binNadzor = true;
+          saveToLocalStorage();
+          renderZiyadahTableContents();
         }
 
-        function saveBinNadzorVerification() {
-            const confirmCheckbox = document.getElementById("binnadzor-confirm");
-            if (!confirmCheckbox.checked) {
-                showModal("warning", "Konfirmasi Diperlukan", "Harap verifikasi bahwa murid telah membaca melihat mushaf minimal 10 halaman.");
-                return;
-            }
-            const studentId = document.getElementById("binnadzor-student-id").value;
-            const targetStudent = appState.students.find(s => s.id === studentId);
+        closeWorkForms();
+        showModal(
+          "success",
+          "Bin-Nadzor Terverifikasi",
+          `SOP Bin-Nadzor untuk ${targetStudent.name} selesai. Halaqah ziyadah ditutup dengan sukses.`,
+        );
+      }
 
-            // Find the last Ziyadah record of this student for today and flag binNadzor as true
-            const todayStr = new Date().toISOString().split('T')[0];
-            const records = appState.mutabaahData.filter(r => r.studentId === studentId && r.type === "ziyadah" && r.date === todayStr);
-            if (records.length > 0) {
-                records[0].binNadzor = true;
-                saveToLocalStorage();
-                renderZiyadahTableContents();
-            }
+      function closeWorkForms() {
+        document
+          .getElementById("ziyadah-form-container")
+          .classList.add("hidden");
+      }
 
-            closeWorkForms();
-            showModal("success", "Bin-Nadzor Terverifikasi", `SOP Bin-Nadzor untuk ${targetStudent.name} selesai. Halaqah ziyadah ditutup dengan sukses.`);
-        }
+      // MUROJAAH & TATSBIT SUBPAGE BUILDER
+      let activeMurojaahTabState = "partner"; // partner, tatsbit
 
-        function closeWorkForms() {
-            document.getElementById("ziyadah-form-container").classList.add("hidden");
-        }
+      function renderMurojaahTab() {
+        switchMurojaahTab(activeMurojaahTabState);
+      }
 
-        // MUROJAAH & TATSBIT SUBPAGE BUILDER
-        let activeMurojaahTabState = "partner"; // partner, tatsbit
+      function switchMurojaahTab(tab) {
+        activeMurojaahTabState = tab;
 
-        function renderMurojaahTab() {
-            switchMurojaahTab(activeMurojaahTabState);
-        }
+        const partnerBtn = document.getElementById("murojaah-tab-partner-btn");
+        const tatsbitBtn = document.getElementById("murojaah-tab-tatsbit-btn");
+        const formHeader = document.getElementById("murojaah-form-header");
+        const formTitle = document.getElementById("murojaah-form-title");
+        const formDesc = document.getElementById("murojaah-form-desc");
+        const inputsWrapper = document.getElementById(
+          "murojaah-inputs-wrapper",
+        );
+        const listTitle = document.getElementById("murojaah-list-title");
 
-        function switchMurojaahTab(tab) {
-            activeMurojaahTabState = tab;
+        // Setup styling for tabs
+        if (tab === "partner") {
+          partnerBtn.className =
+            "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-slate-800 shadow-sm";
+          tatsbitBtn.className =
+            "flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-500 hover:text-slate-800";
 
-            const partnerBtn = document.getElementById("murojaah-tab-partner-btn");
-            const tatsbitBtn = document.getElementById("murojaah-tab-tatsbit-btn");
-            const formHeader = document.getElementById("murojaah-form-header");
-            const formTitle = document.getElementById("murojaah-form-title");
-            const formDesc = document.getElementById("murojaah-form-desc");
-            const inputsWrapper = document.getElementById("murojaah-inputs-wrapper");
-            const listTitle = document.getElementById("murojaah-list-title");
+          formHeader.children[1].innerText = "10 Halaman";
+          formTitle.innerText = "Lapor Muroja'ah Partner (Murid & Guru)";
+          formDesc.innerText =
+            "Laporkan penyelesaian setoran minimal 10 halaman bersama partner yang ditentukan (Akses kunci untuk Ziyadah harian).";
+          listTitle.innerText = "Daftar Setoran Partner";
 
-            // Setup styling for tabs
-            if (tab === "partner") {
-                partnerBtn.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-slate-800 shadow-sm";
-                tatsbitBtn.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-500 hover:text-slate-800";
-                
-                formHeader.children[1].innerText = "10 Halaman";
-                formTitle.innerText = "Lapor Muroja'ah Partner (Murid & Guru)";
-                formDesc.innerText = "Laporkan penyelesaian setoran minimal 10 halaman bersama partner yang ditentukan (Akses kunci untuk Ziyadah harian).";
-                listTitle.innerText = "Daftar Setoran Partner";
-
-                // Build Partner inputs
-                inputsWrapper.innerHTML = `
+          // Build Partner inputs
+          inputsWrapper.innerHTML = `
                     <div class="text-xs space-y-3">
                         <div>
                             <label class="block text-slate-700 font-bold mb-1.5">Pilih Nama Anda / Murid</label>
                             <select id="murojaah-partner-std" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none">
-                                ${appState.students.map(std => `<option value="${std.id}">${std.name} (Partner: ${std.partnerName})</option>`).join('')}
+                                ${appState.students.map((std) => `<option value="${std.id}">${std.name} (Partner: ${std.partnerName})</option>`).join("")}
                             </select>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
@@ -1294,23 +1889,26 @@
                         </button>
                     </div>
                 `;
-            } else {
-                // Tatsbit tab
-                partnerBtn.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-500 hover:text-slate-800";
-                tatsbitBtn.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-slate-800 shadow-sm";
+        } else {
+          // Tatsbit tab
+          partnerBtn.className =
+            "flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-500 hover:text-slate-800";
+          tatsbitBtn.className =
+            "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-slate-800 shadow-sm";
 
-                formHeader.children[1].innerText = "5 Halaman";
-                formTitle.innerText = "Setoran Ujian Tatsbit (Khusus Guru)";
-                formDesc.innerText = "Ujian penguatan 5 halaman ke belakang secara intens untuk menjaga kelancaran, tahsin, dan tajwid hafalan baru.";
-                listTitle.innerText = "Daftar Setoran Tatsbit";
+          formHeader.children[1].innerText = "5 Halaman";
+          formTitle.innerText = "Setoran Ujian Tatsbit (Khusus Guru)";
+          formDesc.innerText =
+            "Ujian penguatan 5 halaman ke belakang secara intens untuk menjaga kelancaran, tahsin, dan tajwid hafalan baru.";
+          listTitle.innerText = "Daftar Setoran Tatsbit";
 
-                // Build Tatsbit inputs
-                inputsWrapper.innerHTML = `
+          // Build Tatsbit inputs
+          inputsWrapper.innerHTML = `
                     <div class="text-xs space-y-3">
                         <div>
                             <label class="block text-slate-700 font-bold mb-1.5">Pilih Nama Murid</label>
                             <select id="murojaah-tatsbit-std" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none">
-                                ${appState.students.map(std => `<option value="${std.id}">${std.name}</option>`).join('')}
+                                ${appState.students.map((std) => `<option value="${std.id}">${std.name}</option>`).join("")}
                             </select>
                         </div>
                         <div class="grid grid-cols-3 gap-2">
@@ -1341,23 +1939,27 @@
                         </button>
                     </div>
                 `;
-            }
-
-            renderMurojaahListContents();
         }
 
-        function renderMurojaahListContents() {
-            const listContainer = document.getElementById("murojaah-list-container");
-            let listHtml = "";
+        renderMurojaahListContents();
+      }
 
-            let filterData = appState.mutabaahData.filter(d => d.type === activeMurojaahTabState);
-            if (appState.currentRole === "murid") {
-                filterData = filterData.filter(d => d.studentId === "std-1");
-            }
+      function renderMurojaahListContents() {
+        const listContainer = document.getElementById(
+          "murojaah-list-container",
+        );
+        let listHtml = "";
 
-            filterData.forEach(row => {
-                if (activeMurojaahTabState === "partner") {
-                    listHtml += `
+        let filterData = appState.mutabaahData.filter(
+          (d) => d.type === activeMurojaahTabState,
+        );
+        if (appState.currentRole === "murid") {
+          filterData = filterData.filter((d) => d.studentId === "std-1");
+        }
+
+        filterData.forEach((row) => {
+          if (activeMurojaahTabState === "partner") {
+            listHtml += `
                         <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex justify-between items-center text-xs">
                             <div>
                                 <span class="font-extrabold text-slate-800 block">${row.studentName}</span>
@@ -1366,9 +1968,9 @@
                             <span class="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2.5 py-1 rounded-full"><i class="fa-solid fa-circle-check"></i> Selesai</span>
                         </div>
                     `;
-                } else {
-                    // Tatsbit
-                    listHtml += `
+          } else {
+            // Tatsbit
+            listHtml += `
                         <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex justify-between items-center text-xs">
                             <div>
                                 <span class="font-extrabold text-slate-800 block">${row.studentName}</span>
@@ -1377,349 +1979,460 @@
                             <span class="bg-blue-500 text-white font-black text-xs px-2.5 py-1 rounded-full shadow-sm">${row.score}</span>
                         </div>
                     `;
-                }
-            });
+          }
+        });
 
-            if (filterData.length === 0) {
-                listHtml = `<div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-center text-slate-400 italic text-xs">Belum ada aktivitas mutabaah tercatat</div>`;
-            }
-
-            listContainer.innerHTML = listHtml;
+        if (filterData.length === 0) {
+          listHtml = `<div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-center text-slate-400 italic text-xs">Belum ada aktivitas mutabaah tercatat</div>`;
         }
 
-        function submitMurojaahPartnerForm() {
-            const studentId = document.getElementById("murojaah-partner-std").value;
-            const fromHal = parseInt(document.getElementById("murojaah-partner-from").value);
-            const toHal = parseInt(document.getElementById("murojaah-partner-to").value);
-            const targetStudent = appState.students.find(s => s.id === studentId);
+        listContainer.innerHTML = listHtml;
+      }
 
-            const newRecord = {
-                id: "m-" + Date.now(),
-                studentId: studentId,
-                studentName: targetStudent.name,
-                type: "partner",
-                date: new Date().toISOString().split('T')[0],
-                fromHal: fromHal,
-                toHal: toHal,
-                score: "Selesai"
-            };
+      function submitMurojaahPartnerForm() {
+        const studentId = document.getElementById("murojaah-partner-std").value;
+        const fromHal = parseInt(
+          document.getElementById("murojaah-partner-from").value,
+        );
+        const toHal = parseInt(
+          document.getElementById("murojaah-partner-to").value,
+        );
+        const targetStudent = appState.students.find((s) => s.id === studentId);
 
-            // Update partner state to true for today
-            targetStudent.lastMurojaahPartnerDate = "2026-07-03";
+        const newRecord = {
+          id: "m-" + Date.now(),
+          studentId: studentId,
+          studentName: targetStudent.name,
+          type: "partner",
+          date: new Date().toISOString().split("T")[0],
+          fromHal: fromHal,
+          toHal: toHal,
+          score: "Selesai",
+        };
 
-            saveEntryToDatabase(newRecord);
-            renderMurojaahListContents();
-            showModal("success", "SOP Partner Selesai", `Laporan Muroja'ah Partner untuk ${targetStudent.name} tersimpan. Akses Ziyadah hari ini telah dibuka!`);
+        // Update partner state to true for today
+        targetStudent.lastMurojaahPartnerDate = "2026-07-03";
+
+        saveEntryToDatabase(newRecord);
+        renderMurojaahListContents();
+        showModal(
+          "success",
+          "SOP Partner Selesai",
+          `Laporan Muroja'ah Partner untuk ${targetStudent.name} tersimpan. Akses Ziyadah hari ini telah dibuka!`,
+        );
+      }
+
+      function submitMurojaahTatsbitForm() {
+        const studentId = document.getElementById("murojaah-tatsbit-std").value;
+        const juz = parseInt(
+          document.getElementById("murojaah-tatsbit-juz").value,
+        );
+        const fromHal = parseInt(
+          document.getElementById("murojaah-tatsbit-from").value,
+        );
+        const toHal = parseInt(
+          document.getElementById("murojaah-tatsbit-to").value,
+        );
+        const score = document.getElementById("murojaah-tatsbit-score").value;
+        const targetStudent = appState.students.find((s) => s.id === studentId);
+
+        const newRecord = {
+          id: "m-" + Date.now(),
+          studentId: studentId,
+          studentName: targetStudent.name,
+          type: "tatsbit",
+          date: new Date().toISOString().split("T")[0],
+          juz: juz,
+          fromHal: fromHal,
+          toHal: toHal,
+          score: score,
+        };
+
+        saveEntryToDatabase(newRecord);
+        renderMurojaahListContents();
+
+        // BUSINESS RULE: Ujian Tatsbit live Instagram triggers on specific landmarks (5, 10, 15, 20 hal)
+        const pagesRecorded = toHal - fromHal + 1;
+        if (pagesRecorded >= 5) {
+          showModal(
+            "success",
+            "Tasmi' Live Instagram!",
+            `Masya Allah, Tatsbit ${targetStudent.name} telah mencapai kelipatan 5 halaman. Jadwalkan persiapan siaran langsung Tasmi' Live Instagram bersama ustadz.`,
+          );
+        } else {
+          showModal(
+            "success",
+            "Hasil Tatsbit Disimpan",
+            `Berhasil merekam penguatan Tatsbit untuk ${targetStudent.name}.`,
+          );
         }
+      }
 
-        function submitMurojaahTatsbitForm() {
-            const studentId = document.getElementById("murojaah-tatsbit-std").value;
-            const juz = parseInt(document.getElementById("murojaah-tatsbit-juz").value);
-            const fromHal = parseInt(document.getElementById("murojaah-tatsbit-from").value);
-            const toHal = parseInt(document.getElementById("murojaah-tatsbit-to").value);
-            const score = document.getElementById("murojaah-tatsbit-score").value;
-            const targetStudent = appState.students.find(s => s.id === studentId);
+      // PROFILE SUBPAGE BUILDER
+      function renderProfileTab() {
+        // Personalize card
+        const profileName = document.getElementById("profile-name");
+        const profileRole = document.getElementById("profile-role");
+        const profileEmail = document.getElementById("profile-email");
+        const avatarImg = document.getElementById("profile-avatar");
 
-            const newRecord = {
-                id: "m-" + Date.now(),
-                studentId: studentId,
-                studentName: targetStudent.name,
-                type: "tatsbit",
-                date: new Date().toISOString().split('T')[0],
-                juz: juz,
-                fromHal: fromHal,
-                toHal: toHal,
-                score: score
-            };
+        if (appState.currentRole === "super-admin") {
+          profileName.innerText = "Developer / Super-Admin";
+          profileRole.innerText = "SaaS Platform Owner";
+          profileEmail.innerText = "admin@jazacademy.com";
+          avatarImg.src =
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256";
 
-            saveEntryToDatabase(newRecord);
-            renderMurojaahListContents();
+          document
+            .getElementById("profile-super-admin-section")
+            .classList.remove("hidden");
+          document
+            .getElementById("profile-admin-tenant-section")
+            .classList.add("hidden");
+          renderTenantList();
+        } else if (appState.currentRole === "admin-tenant") {
+          profileName.innerText = "Ustadz H. Gunawan";
+          profileRole.innerText = "Admin Tenant - Jaz Academy Jakarta";
+          profileEmail.innerText = "gunawan@jazjakarta.sch.id";
+          avatarImg.src =
+            "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=256";
 
-            // BUSINESS RULE: Ujian Tatsbit live Instagram triggers on specific landmarks (5, 10, 15, 20 hal)
-            const pagesRecorded = toHal - fromHal + 1;
-            if (pagesRecorded >= 5) {
-                showModal("success", "Tasmi' Live Instagram!", `Masya Allah, Tatsbit ${targetStudent.name} telah mencapai kelipatan 5 halaman. Jadwalkan persiapan siaran langsung Tasmi' Live Instagram bersama ustadz.`);
-            } else {
-                showModal("success", "Hasil Tatsbit Disimpan", `Berhasil merekam penguatan Tatsbit untuk ${targetStudent.name}.`);
-            }
+          document
+            .getElementById("profile-super-admin-section")
+            .classList.add("hidden");
+          document
+            .getElementById("profile-admin-tenant-section")
+            .classList.remove("hidden");
+        } else if (appState.currentRole === "guru") {
+          profileName.innerText = "Ustadz Ahmad Fauzi";
+          profileRole.innerText = "Ustadz Halaqah - Jaz Academy Jakarta";
+          profileEmail.innerText = "ahmad.fauzi@gmail.com";
+          avatarImg.src =
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256";
+
+          document
+            .getElementById("profile-super-admin-section")
+            .classList.add("hidden");
+          document
+            .getElementById("profile-admin-tenant-section")
+            .classList.add("hidden");
+        } else {
+          // Murid
+          profileName.innerText = "Hamzah Dwi Nugroho";
+          profileRole.innerText = "Santri - Jaz Academy Jakarta";
+          profileEmail.innerText = "hamzah.dwi@gmail.com";
+          avatarImg.src =
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256";
+
+          document
+            .getElementById("profile-super-admin-section")
+            .classList.add("hidden");
+          document
+            .getElementById("profile-admin-tenant-section")
+            .classList.add("hidden");
         }
+      }
 
-        // PROFILE SUBPAGE BUILDER
-        function renderProfileTab() {
-            // Personalize card
-            const profileName = document.getElementById("profile-name");
-            const profileRole = document.getElementById("profile-role");
-            const profileEmail = document.getElementById("profile-email");
-            const avatarImg = document.getElementById("profile-avatar");
-
-            if (appState.currentRole === "super-admin") {
-                profileName.innerText = "Developer / Super-Admin";
-                profileRole.innerText = "SaaS Platform Owner";
-                profileEmail.innerText = "admin@jazacademy.com";
-                avatarImg.src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256";
-                
-                document.getElementById("profile-super-admin-section").classList.remove("hidden");
-                document.getElementById("profile-admin-tenant-section").classList.add("hidden");
-                renderTenantList();
-            } else if (appState.currentRole === "admin-tenant") {
-                profileName.innerText = "Ustadz H. Gunawan";
-                profileRole.innerText = "Admin Tenant - Jaz Academy Jakarta";
-                profileEmail.innerText = "gunawan@jazjakarta.sch.id";
-                avatarImg.src = "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=256";
-
-                document.getElementById("profile-super-admin-section").classList.add("hidden");
-                document.getElementById("profile-admin-tenant-section").classList.remove("hidden");
-            } else if (appState.currentRole === "guru") {
-                profileName.innerText = "Ustadz Ahmad Fauzi";
-                profileRole.innerText = "Ustadz Halaqah - Jaz Academy Jakarta";
-                profileEmail.innerText = "ahmad.fauzi@gmail.com";
-                avatarImg.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256";
-
-                document.getElementById("profile-super-admin-section").classList.add("hidden");
-                document.getElementById("profile-admin-tenant-section").classList.add("hidden");
-            } else {
-                // Murid
-                profileName.innerText = "Hamzah Dwi Nugroho";
-                profileRole.innerText = "Santri - Jaz Academy Jakarta";
-                profileEmail.innerText = "hamzah.dwi@gmail.com";
-                avatarImg.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256";
-
-                document.getElementById("profile-super-admin-section").classList.add("hidden");
-                document.getElementById("profile-admin-tenant-section").classList.add("hidden");
-            }
-        }
-
-        // Render List of tenants for Super Admin
-        function renderTenantList() {
-            const list = document.getElementById("super-tenant-list");
-            let html = "";
-            appState.tenants.forEach(ten => {
-                html += `
+      // Render List of tenants for Super Admin
+      function renderTenantList() {
+        const list = document.getElementById("super-tenant-list");
+        let html = "";
+        appState.tenants.forEach((ten) => {
+          html += `
                     <div class="flex justify-between items-center p-3 text-xs bg-white">
                         <div>
                             <span class="font-extrabold text-slate-800 block">${ten.name}</span>
                             <span class="text-[10px] text-slate-400 block">Kode: ${ten.code}</span>
                         </div>
-                        ${ten.active 
-                            ? '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">Aktif</span>' 
+                        ${
+                          ten.active
+                            ? '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">Aktif</span>'
                             : '<span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded">Ditangguhkan</span>'
                         }
                     </div>
                 `;
-            });
-            list.innerHTML = html;
+        });
+        list.innerHTML = html;
+      }
+
+      function openSuperAdminForm(type) {
+        if (type === "tenant") {
+          showModal(
+            "success",
+            "Tambah Tenant",
+            "Formulir pendaftaran tenant/sekolah tahfidz baru siap diintegrasikan pada backend Next.js & MongoDB Atlas.",
+          );
+        }
+      }
+
+      function openAdminTenantForm(type) {
+        showModal(
+          "success",
+          `Kelola ${type.toUpperCase()}`,
+          `Form registrasi ${type} baru mendukung integrasi multi-tenant otomatis ke database MongoDB.`,
+        );
+      }
+
+      // DATABASE OFFLINE PIPELINE
+      function saveEntryToDatabase(record) {
+        if (appState.isOnline) {
+          // Save to simulated remote MongoDB directly
+          appState.mutabaahData.push(record);
+          saveToLocalStorage();
+          updateGraphsData();
+        } else {
+          // Offline-first: Save to Local Queue for sync
+          appState.mutabaahData.push(record);
+          appState.syncQueue.push(record);
+          saveToLocalStorage();
+          updateSyncQueueUI();
+          updateGraphsData();
+        }
+      }
+
+      // Offline / Online Toggles
+      function toggleOnlineState() {
+        appState.isOnline = !appState.isOnline;
+        const badge = document.getElementById("online-badge");
+
+        if (appState.isOnline) {
+          badge.className =
+            "bg-emerald-400 text-slate-950 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:opacity-90 transition";
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-ping"></span><span>ONLINE</span>`;
+
+          // Trigger Background Sync automatically when going back online
+          triggerBackgroundSync();
+        } else {
+          badge.className =
+            "bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:opacity-90 transition";
+          badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white"></span><span>OFFLINE</span>`;
+          showModal(
+            "warning",
+            "Masuk Mode Offline",
+            "Koneksi internet terputus. Seluruh data mutabaah baru akan disimpan di dalam penyimpanan lokal (IndexedDB/LocalStorage) dan disinkronkan secara otomatis ketika jaringan pulih.",
+          );
+        }
+      }
+
+      function updateSyncQueueUI() {
+        const badge = document.getElementById("sync-queue-badge");
+        const count = document.getElementById("queue-count");
+
+        if (appState.syncQueue.length > 0) {
+          badge.classList.remove("hidden");
+          count.innerText = appState.syncQueue.length;
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
+
+      // Background Sync Simulator
+      function triggerBackgroundSync() {
+        if (appState.syncQueue.length === 0) return;
+
+        showModal(
+          "success",
+          "Sinkronisasi Data",
+          "Koneksi internet terdeteksi. Memulai proses background sync...",
+        );
+
+        setTimeout(() => {
+          // Clear queue
+          appState.syncQueue = [];
+          saveToLocalStorage();
+          updateSyncQueueUI();
+          showModal(
+            "success",
+            "Sinkronisasi Berhasil",
+            "Seluruh data mutabaah lokal berhasil disinkronkan ke database cloud MongoDB Atlas!",
+          );
+          renderSelectedTab();
+        }, 2000);
+      }
+
+      // ANALYTICAL CHARTS CONFIGURATION (Chart.js)
+      function initCharts() {
+        // Setup Chart 1: Cumulative Juz
+        const ctxCumulative = document
+          .getElementById("chart-cumulative-juz")
+          .getContext("2d");
+        chartCumulative = new Chart(ctxCumulative, {
+          type: "line",
+          data: {
+            labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahd"],
+            datasets: [
+              {
+                label: "Total Juz Dihafal",
+                data: [12, 12, 13, 13, 15, 15, 16],
+                borderColor: "#2D7A60",
+                backgroundColor: "rgba(45, 122, 96, 0.1)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: false } },
+          },
+        });
+
+        // Setup Chart 2: Setoran vs Partner
+        const ctxSetoran = document
+          .getElementById("chart-setoran-murojaah")
+          .getContext("2d");
+        chartSetoran = new Chart(ctxSetoran, {
+          type: "bar",
+          data: {
+            labels: ["Pek-1", "Pek-2", "Pek-3", "Pek-4"],
+            datasets: [
+              {
+                label: "Ziyadah (Hal)",
+                data: [10, 15, 8, 12],
+                backgroundColor: "#2D7A60",
+                borderRadius: 6,
+              },
+              {
+                label: "Murojaah (Hal)",
+                data: [40, 50, 45, 55],
+                backgroundColor: "#EAB308",
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 10, font: { size: 9 } },
+              },
+            },
+            scales: { x: { stacked: false }, y: { stacked: false } },
+          },
+        });
+
+        // Setup Chart 3: Tatsbit Distribution
+        const ctxGrades = document
+          .getElementById("chart-tatsbit-grades")
+          .getContext("2d");
+        chartGrades = new Chart(ctxGrades, {
+          type: "doughnut",
+          data: {
+            labels: ["Grade A+", "Grade A", "Grade B+", "Grade B"],
+            datasets: [
+              {
+                data: [4, 6, 3, 2],
+                backgroundColor: ["#2D7A60", "#3B82F6", "#EAB308", "#F43F5E"],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: { boxWidth: 10, font: { size: 9 } },
+              },
+            },
+          },
+        });
+
+        updateGraphsData();
+      }
+
+      // Dynamically update statistics inside the Graph view based on mock data length
+      function updateGraphsData() {
+        const ziyadahData = appState.mutabaahData.filter(
+          (d) => d.type === "ziyadah",
+        );
+        const murojaahData = appState.mutabaahData.filter(
+          (d) => d.type === "partner",
+        );
+        const tatsbitData = appState.mutabaahData.filter(
+          (d) => d.type === "tatsbit",
+        );
+
+        // Calculate totals
+        let totalZiyadahPages = 0;
+        ziyadahData.forEach((d) => {
+          totalZiyadahPages += d.toHal - d.fromHal + 1;
+        });
+
+        let totalMurojaahPages = 0;
+        murojaahData.forEach((d) => {
+          totalMurojaahPages += d.toHal - d.fromHal + 1;
+        });
+
+        let totalTatsbitPages = 0;
+        tatsbitData.forEach((d) => {
+          totalTatsbitPages += d.toHal - d.fromHal + 1;
+        });
+
+        // Render stats
+        document.getElementById("stat-total-ziyadah").innerText =
+          totalZiyadahPages || "0";
+        document.getElementById("stat-total-murojaah").innerText =
+          totalMurojaahPages || "0";
+        document.getElementById("stat-total-tatsbit").innerText =
+          totalTatsbitPages || "0";
+      }
+
+      function updateCharts() {
+        if (!chartCumulative) return;
+        // Simulated subtle changes to graph based on state database
+        const randomIncrement = Math.floor(Math.random() * 3) + 1;
+
+        chartCumulative.data.datasets[0].data = [
+          12,
+          12,
+          13,
+          14,
+          15,
+          15,
+          15 + randomIncrement,
+        ];
+        chartCumulative.update();
+      }
+
+      // Modal Handlers
+      function showModal(type, title, message) {
+        const modal = document.getElementById("custom-modal");
+        const container = document.getElementById("modal-icon-container");
+        const icon = document.getElementById("modal-icon");
+        const mTitle = document.getElementById("modal-title");
+        const mBody = document.getElementById("modal-body");
+
+        mTitle.innerText = title;
+        mBody.innerText = message;
+
+        // Adjust icon/styles depending on type
+        if (type === "success") {
+          container.className =
+            "w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-emerald-100 text-emerald-600";
+          icon.className = "fa-solid fa-circle-check text-2xl";
+        } else if (type === "warning") {
+          container.className =
+            "w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-amber-100 text-amber-600";
+          icon.className = "fa-solid fa-triangle-exclamation text-2xl";
+        } else {
+          // error
+          container.className =
+            "w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-rose-100 text-rose-600";
+          icon.className = "fa-solid fa-ban text-2xl";
         }
 
-        function openSuperAdminForm(type) {
-            if (type === 'tenant') {
-                showModal("success", "Tambah Tenant", "Formulir pendaftaran tenant/sekolah tahfidz baru siap diintegrasikan pada backend Next.js & MongoDB Atlas.");
-            }
-        }
+        modal.classList.remove("hidden");
+      }
 
-        function openAdminTenantForm(type) {
-            showModal("success", `Kelola ${type.toUpperCase()}`, `Form registrasi ${type} baru mendukung integrasi multi-tenant otomatis ke database MongoDB.`);
-        }
-
-        // DATABASE OFFLINE PIPELINE
-        function saveEntryToDatabase(record) {
-            if (appState.isOnline) {
-                // Save to simulated remote MongoDB directly
-                appState.mutabaahData.push(record);
-                saveToLocalStorage();
-                updateGraphsData();
-            } else {
-                // Offline-first: Save to Local Queue for sync
-                appState.mutabaahData.push(record);
-                appState.syncQueue.push(record);
-                saveToLocalStorage();
-                updateSyncQueueUI();
-                updateGraphsData();
-            }
-        }
-
-        // Offline / Online Toggles
-        function toggleOnlineState() {
-            appState.isOnline = !appState.isOnline;
-            const badge = document.getElementById("online-badge");
-
-            if (appState.isOnline) {
-                badge.className = "bg-emerald-400 text-slate-950 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:opacity-90 transition";
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-ping"></span><span>ONLINE</span>`;
-                
-                // Trigger Background Sync automatically when going back online
-                triggerBackgroundSync();
-            } else {
-                badge.className = "bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:opacity-90 transition";
-                badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white"></span><span>OFFLINE</span>`;
-                showModal("warning", "Masuk Mode Offline", "Koneksi internet terputus. Seluruh data mutabaah baru akan disimpan di dalam penyimpanan lokal (IndexedDB/LocalStorage) dan disinkronkan secara otomatis ketika jaringan pulih.");
-            }
-        }
-
-        function updateSyncQueueUI() {
-            const badge = document.getElementById("sync-queue-badge");
-            const count = document.getElementById("queue-count");
-
-            if (appState.syncQueue.length > 0) {
-                badge.classList.remove("hidden");
-                count.innerText = appState.syncQueue.length;
-            } else {
-                badge.classList.add("hidden");
-            }
-        }
-
-        // Background Sync Simulator
-        function triggerBackgroundSync() {
-            if (appState.syncQueue.length === 0) return;
-
-            showModal("success", "Sinkronisasi Data", "Koneksi internet terdeteksi. Memulai proses background sync...");
-
-            setTimeout(() => {
-                // Clear queue
-                appState.syncQueue = [];
-                saveToLocalStorage();
-                updateSyncQueueUI();
-                showModal("success", "Sinkronisasi Berhasil", "Seluruh data mutabaah lokal berhasil disinkronkan ke database cloud MongoDB Atlas!");
-                renderSelectedTab();
-            }, 2000);
-        }
-
-        // ANALYTICAL CHARTS CONFIGURATION (Chart.js)
-        function initCharts() {
-            // Setup Chart 1: Cumulative Juz
-            const ctxCumulative = document.getElementById('chart-cumulative-juz').getContext('2d');
-            chartCumulative = new Chart(ctxCumulative, {
-                type: 'line',
-                data: {
-                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Ahd'],
-                    datasets: [{
-                        label: 'Total Juz Dihafal',
-                        data: [12, 12, 13, 13, 15, 15, 16],
-                        borderColor: '#2D7A60',
-                        backgroundColor: 'rgba(45, 122, 96, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: false } }
-                }
-            });
-
-            // Setup Chart 2: Setoran vs Partner
-            const ctxSetoran = document.getElementById('chart-setoran-murojaah').getContext('2d');
-            chartSetoran = new Chart(ctxSetoran, {
-                type: 'bar',
-                data: {
-                    labels: ['Pek-1', 'Pek-2', 'Pek-3', 'Pek-4'],
-                    datasets: [
-                        {
-                            label: 'Ziyadah (Hal)',
-                            data: [10, 15, 8, 12],
-                            backgroundColor: '#2D7A60',
-                            borderRadius: 6
-                        },
-                        {
-                            label: 'Murojaah (Hal)',
-                            data: [40, 50, 45, 55],
-                            backgroundColor: '#EAB308',
-                            borderRadius: 6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } },
-                    scales: { x: { stacked: false }, y: { stacked: false } }
-                }
-            });
-
-            // Setup Chart 3: Tatsbit Distribution
-            const ctxGrades = document.getElementById('chart-tatsbit-grades').getContext('2d');
-            chartGrades = new Chart(ctxGrades, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Grade A+', 'Grade A', 'Grade B+', 'Grade B'],
-                    datasets: [{
-                        data: [4, 6, 3, 2],
-                        backgroundColor: ['#2D7A60', '#3B82F6', '#EAB308', '#F43F5E']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } } }
-                }
-            });
-
-            updateGraphsData();
-        }
-
-        // Dynamically update statistics inside the Graph view based on mock data length
-        function updateGraphsData() {
-            const ziyadahData = appState.mutabaahData.filter(d => d.type === "ziyadah");
-            const murojaahData = appState.mutabaahData.filter(d => d.type === "partner");
-            const tatsbitData = appState.mutabaahData.filter(d => d.type === "tatsbit");
-
-            // Calculate totals
-            let totalZiyadahPages = 0;
-            ziyadahData.forEach(d => { totalZiyadahPages += (d.toHal - d.fromHal + 1); });
-
-            let totalMurojaahPages = 0;
-            murojaahData.forEach(d => { totalMurojaahPages += (d.toHal - d.fromHal + 1); });
-
-            let totalTatsbitPages = 0;
-            tatsbitData.forEach(d => { totalTatsbitPages += (d.toHal - d.fromHal + 1); });
-
-            // Render stats
-            document.getElementById("stat-total-ziyadah").innerText = totalZiyadahPages || "0";
-            document.getElementById("stat-total-murojaah").innerText = totalMurojaahPages || "0";
-            document.getElementById("stat-total-tatsbit").innerText = totalTatsbitPages || "0";
-        }
-
-        function updateCharts() {
-            if (!chartCumulative) return;
-            // Simulated subtle changes to graph based on state database
-            const randomIncrement = Math.floor(Math.random() * 3) + 1;
-            
-            chartCumulative.data.datasets[0].data = [12, 12, 13, 14, 15, 15, 15 + randomIncrement];
-            chartCumulative.update();
-        }
-
-        // Modal Handlers
-        function showModal(type, title, message) {
-            const modal = document.getElementById("custom-modal");
-            const container = document.getElementById("modal-icon-container");
-            const icon = document.getElementById("modal-icon");
-            const mTitle = document.getElementById("modal-title");
-            const mBody = document.getElementById("modal-body");
-
-            mTitle.innerText = title;
-            mBody.innerText = message;
-
-            // Adjust icon/styles depending on type
-            if (type === "success") {
-                container.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-emerald-100 text-emerald-600";
-                icon.className = "fa-solid fa-circle-check text-2xl";
-            } else if (type === "warning") {
-                container.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-amber-100 text-amber-600";
-                icon.className = "fa-solid fa-triangle-exclamation text-2xl";
-            } else {
-                // error
-                container.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-rose-100 text-rose-600";
-                icon.className = "fa-solid fa-ban text-2xl";
-            }
-
-            modal.classList.remove("hidden");
-        }
-
-        function closeModal() {
-            document.getElementById("custom-modal").classList.add("hidden");
-        }
+      function closeModal() {
+        document.getElementById("custom-modal").classList.add("hidden");
+      }
     </script>
-</body>
+  </body>
 </html>

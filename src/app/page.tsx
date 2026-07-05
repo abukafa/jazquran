@@ -21,8 +21,12 @@ export default function WelcomePage() {
       <div className="flex-1 overflow-y-auto pb-24 relative p-6 flex flex-col justify-between h-full min-h-[750px]">
         {/* Header Logo */}
         <div className="text-center pt-4">
-          <span className="bg-sage-100 text-sage-700 text-xs font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">Jaz Academy</span>
-          <h1 className="text-3xl font-extrabold text-sage-700 mt-2">Tahfidz Tracker</h1>
+          <span className="bg-sage-100 text-sage-700 text-xs font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">
+            Tahfidz Tracker
+          </span>
+          <h1 className="text-4xl font-extrabold text-sage-700 mt-2">
+            Jaz<span className="text-sage-400">Quran</span>
+          </h1>
         </div>
 
         {/* Carousel Body */}
@@ -30,37 +34,74 @@ export default function WelcomePage() {
           {activeSlide === 1 && (
             <div className="carousel-slide flex flex-col items-center page-transition">
               <div className="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
-                <svg className="w-32 h-32 text-sage-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                <svg
+                  className="w-32 h-32 text-sage-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+                  />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-3">Sistem Mutabaah Digital</h2>
-              <p className="text-slate-500 text-sm leading-relaxed">Platform monitoring setoran Al-Qur'an secara real-time untuk mencetak generasi hafiz yang disiplin, berkarakter, dan mutqin.</p>
+              <h2 className="text-2xl font-bold text-slate-800 mb-3">
+                Sistem Mutabaah Digital
+              </h2>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                Platform monitoring setoran Al-Qur'an secara real-time untuk
+                mencetak generasi hafiz yang disiplin, berkarakter, dan mutqin.
+              </p>
             </div>
           )}
 
           {activeSlide === 2 && (
             <div className="carousel-slide flex flex-col items-center page-transition">
               <div className="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
-                <svg className="w-32 h-32 text-sage-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.97 5.97 0 0 0-.75-2.906m-.173-4.094a3 3 0 1 1-.002-5.998 3 3 0 0 1 .002 5.998ZM12 11a6.062 6.062 0 0 1-5.963-1.584 6.062 6.062 0 0 1-.038-.666v-.03c0-3.323 2.697-6 6-6s6 2.677 6 6v.03c0 .222-.012.445-.038.666A6.062 6.062 0 0 1 12 11Zm0 0a5.97 5.97 0 0 0-.75 2.906m.75-2.906c.263 0 .515.045.75.127m-3.417 2.779a3 3 0 0 0-4.681 2.72 3 3 0 0 0 3.74 3.198c-.025-.219-.038-.441-.038-.666l.001-.03a5.97 5.97 0 0 1 .978-3.198Z" />
-                </svg>
+                <i className="fa-solid fa-users text-7xl text-sage-500"></i>
               </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-3">SOP Partner Muraja'ah</h2>
-              <p className="text-slate-500 text-sm leading-relaxed">Saling menguatkan hafalan bersama rekan sejawat. Ziyadah hari ini terkunci sebelum verifikasi partner diselesaikan.</p>
+              <h2 className="text-2xl font-bold text-slate-800 mb-3">
+                SOP Partner Muraja'ah
+              </h2>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                Saling menguatkan hafalan bersama rekan sejawat. Ziyadah hari
+                ini terkunci sebelum verifikasi partner diselesaikan.
+              </p>
             </div>
           )}
 
           {activeSlide === 3 && (
             <div className="carousel-slide flex flex-col items-center page-transition">
               <div className="w-48 h-48 bg-sage-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
-                <svg className="w-32 h-32 text-sage-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+                <svg
+                  className="w-32 h-32 text-sage-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"
+                  />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-3">Analisis Progres & Grafik</h2>
-              <p className="text-slate-500 text-sm leading-relaxed">Visualisasi diagram kemajuan mingguan, akumulasi juz, serta notifikasi ujian tatsbit dan siaran live tasmi otomatis.</p>
+              <h2 className="text-2xl font-bold text-slate-800 mb-3">
+                Analisis Progres & Grafik
+              </h2>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                Visualisasi diagram kemajuan mingguan, akumulasi juz, serta
+                notifikasi ujian tatsbit dan siaran live tasmi otomatis.
+              </p>
             </div>
           )}
         </div>
@@ -77,11 +118,17 @@ export default function WelcomePage() {
               />
             ))}
           </div>
-          <button onClick={nextSlide} className="bg-sage-500 hover:bg-sage-600 text-white font-semibold py-3.5 rounded-2xl transition shadow-lg shadow-sage-500/20 w-full flex items-center justify-center gap-2">
+          <button
+            onClick={nextSlide}
+            className="bg-sage-500 hover:bg-sage-600 text-white font-semibold py-3.5 rounded-2xl transition shadow-lg shadow-sage-500/20 w-full flex items-center justify-center gap-2"
+          >
             <span>Lanjutkan</span>
             <i className="fa-solid fa-arrow-right text-sm"></i>
           </button>
-          <button onClick={() => router.push("/login")} className="text-sage-700 hover:text-sage-800 font-bold text-sm py-2">
+          <button
+            onClick={() => router.push("/login")}
+            className="text-sage-700 hover:text-sage-800 font-bold text-sm py-2"
+          >
             Lewati & Masuk
           </button>
         </div>
