@@ -1,5 +1,6 @@
 "use server";
 
+import { getStartOfDayUTC } from '@/lib/dateHelpers';
 import dbConnect from "@/lib/db";
 import { MutabaahDaily } from "@/models/MutabaahDaily";
 import { Student } from "@/models/Student";
@@ -125,40 +126,63 @@ export async function submitMurojaahPartnerData(
       return { success: false, error: "Hanya Guru, Admin Tenant, dan Partner yang bisa menginput Murojaah" };
     }
 
-    const queryDate = new Date(originalDateStr || dateStr);
-    queryDate.setHours(0, 0, 0, 0);
-    const nextDay = new Date(queryDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+    // 1. Dapatkan/Buat Mutabaah untuk tanggal Target (dateStr)
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0, 0, 0, 0);
+    const targetNextDay = new Date(targetDate);
+    targetNextDay.setDate(targetNextDay.getDate() + 1);
 
-    let mutabaah = await MutabaahDaily.findOne({
+    let targetMutabaah = await MutabaahDaily.findOne({
       studentId: new mongoose.Types.ObjectId(studentId),
-      tanggal: { $gte: queryDate, $lt: nextDay },
+      tanggal: { $gte: targetDate, $lt: targetNextDay },
     });
 
-    if (!mutabaah) {
-      const newTargetDate = new Date(dateStr);
-      newTargetDate.setHours(0, 0, 0, 0);
-      mutabaah = new MutabaahDaily({
+    if (!targetMutabaah) {
+      targetMutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
         guruId: role === "guru" ? userId : (student as any).halaqahId, // Guru ID fallback kalau murid yg submit
-        tanggal: newTargetDate,
+        tanggal: targetDate,
+        presensi: { dzikirPagiPetang: false, matanTuhfahJazari: false },
+        ziyadah: { hasSetoran: false, talaqqiTakrir: false, binNadzorComplete: false },
+        murojaahPartner: { isCompleted: false },
+        tatsbit: { isCompleted: false }
       });
-    } else if (originalDateStr && originalDateStr !== dateStr) {
-      // Jika user mengubah tanggal di modal edit
-      const newTargetDate = new Date(dateStr);
-      newTargetDate.setHours(0, 0, 0, 0);
-      mutabaah.tanggal = newTargetDate;
     }
 
-    mutabaah.murojaahPartner = {
+    // 2. Jika user mengubah tanggal di modal edit
+    if (originalDateStr && originalDateStr !== dateStr) {
+      const oldDate = new Date(originalDateStr);
+      oldDate.setHours(0, 0, 0, 0);
+      const oldNextDay = new Date(oldDate);
+      oldNextDay.setDate(oldNextDay.getDate() + 1);
+
+      let oldMutabaah = await MutabaahDaily.findOne({
+        studentId: new mongoose.Types.ObjectId(studentId),
+        tanggal: { $gte: oldDate, $lt: oldNextDay },
+      });
+
+      if (oldMutabaah) {
+        // Hapus data murojaahPartner dari tanggal yang lama karena sudah dipindah
+        oldMutabaah.murojaahPartner = {
+          isCompleted: false,
+          juz: undefined,
+          halamanDari: undefined,
+          halamanKe: undefined,
+        };
+        await oldMutabaah.save();
+      }
+    }
+
+    // 3. Update field murojaahPartner di targetMutabaah
+    targetMutabaah.murojaahPartner = {
       isCompleted: true,
       juz: murojaahData.juz,
       halamanDari: murojaahData.halamanDari,
       halamanKe: murojaahData.halamanKe,
     };
 
-    await mutabaah.save();
+    await targetMutabaah.save();
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -189,33 +213,57 @@ export async function submitTatsbitData(
     const student = await Student.findById(studentId);
     if (!student) return { success: false, error: "Murid tidak ditemukan" };
 
-    const queryDate = new Date(originalDateStr || dateStr);
-    queryDate.setHours(0, 0, 0, 0);
-    const nextDay = new Date(queryDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+    // 1. Dapatkan/Buat Mutabaah untuk tanggal Target (dateStr)
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0, 0, 0, 0);
+    const targetNextDay = new Date(targetDate);
+    targetNextDay.setDate(targetNextDay.getDate() + 1);
 
-    let mutabaah = await MutabaahDaily.findOne({
+    let targetMutabaah = await MutabaahDaily.findOne({
       studentId: new mongoose.Types.ObjectId(studentId),
-      tanggal: { $gte: queryDate, $lt: nextDay },
+      tanggal: { $gte: targetDate, $lt: targetNextDay },
     });
 
-    if (!mutabaah) {
-      const newTargetDate = new Date(dateStr);
-      newTargetDate.setHours(0, 0, 0, 0);
-      mutabaah = new MutabaahDaily({
+    if (!targetMutabaah) {
+      targetMutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
         guruId: userId,
-        tanggal: newTargetDate,
+        tanggal: targetDate,
+        presensi: { dzikirPagiPetang: false, matanTuhfahJazari: false },
+        ziyadah: { hasSetoran: false, talaqqiTakrir: false, binNadzorComplete: false },
+        murojaahPartner: { isCompleted: false },
+        tatsbit: { isCompleted: false }
       });
-    } else if (originalDateStr && originalDateStr !== dateStr) {
-      // Jika user mengubah tanggal di modal edit
-      const newTargetDate = new Date(dateStr);
-      newTargetDate.setHours(0, 0, 0, 0);
-      mutabaah.tanggal = newTargetDate;
     }
 
-    mutabaah.tatsbit = {
+    // 2. Jika user mengubah tanggal di modal edit
+    if (originalDateStr && originalDateStr !== dateStr) {
+      const oldDate = new Date(originalDateStr);
+      oldDate.setHours(0, 0, 0, 0);
+      const oldNextDay = new Date(oldDate);
+      oldNextDay.setDate(oldNextDay.getDate() + 1);
+
+      let oldMutabaah = await MutabaahDaily.findOne({
+        studentId: new mongoose.Types.ObjectId(studentId),
+        tanggal: { $gte: oldDate, $lt: oldNextDay },
+      });
+
+      if (oldMutabaah) {
+        // Hapus data tatsbit dari tanggal yang lama karena sudah dipindah
+        oldMutabaah.tatsbit = {
+          isCompleted: false,
+          juz: undefined,
+          halamanDari: undefined,
+          halamanKe: undefined,
+          nilai: undefined,
+        };
+        await oldMutabaah.save();
+      }
+    }
+
+    // 3. Update field tatsbit di targetMutabaah
+    targetMutabaah.tatsbit = {
       isCompleted: true,
       juz: tatsbitData.juz,
       halamanDari: tatsbitData.halamanDari,
@@ -223,7 +271,7 @@ export async function submitTatsbitData(
       nilai: tatsbitData.nilai as any,
     };
 
-    await mutabaah.save();
+    await targetMutabaah.save();
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

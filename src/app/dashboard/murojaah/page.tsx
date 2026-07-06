@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import useSWR from "swr";
 import { useAppContext } from "@/context/AppContext";
 import { getMyHalaqahs } from "@/actions/guru";
 import {
@@ -26,9 +27,6 @@ export default function MurojaahPage() {
       .split("T")[0],
   );
 
-  const [studentsData, setStudentsData] = useState<any[]>([]);
-  const [muridPartnerData, setMuridPartnerData] = useState<any>(null); // Khusus Murid
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [activeModal, setActiveModal] = useState<"partner" | "tatsbit" | null>(
@@ -86,17 +84,6 @@ export default function MurojaahPage() {
     }
   }, [state.currentRole]);
 
-  useEffect(() => {
-    if (
-      ["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "") &&
-      selectedHalaqah
-    ) {
-      fetchData();
-    } else if (state.currentRole === "murid") {
-      fetchStudentData(selectedDate);
-    }
-  }, [selectedHalaqah, selectedDate, state.currentRole]);
-
   const fetchHalaqahs = async () => {
     const res = await getMyHalaqahs();
     if (res.success && res.halaqahs && res.halaqahs.length > 0) {
@@ -105,32 +92,43 @@ export default function MurojaahPage() {
     }
   };
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    const hId = selectedHalaqah;
-    const res = await getMurojaahByDate(hId as any, selectedDate);
-    if (res.success && res.data) {
-      setStudentsData(res.data);
-    }
-    setIsLoading(false);
-  };
-
-  const fetchStudentData = async (dateFilter: string) => {
-    setIsLoading(true);
-    const res = await getMuridMurojaahData(
-      dateFilter ||
+  const swrKey = state.currentRole
+    ? `murojaah-${state.currentRole}-${selectedHalaqah}-${selectedDate}`
+    : null;
+  const fetcher = async () => {
+    if (state.currentRole === "murid") {
+      const dFilter =
+        selectedDate ||
         new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
-          .split("T")[0],
-    );
-    if (res.success) {
-      setStudentsData(res.myHistory || []);
-      setMuridPartnerData(res.partnerData);
+          .split("T")[0];
+      const res = await getMuridMurojaahData(dFilter);
+      return res.success
+        ? { students: res.myHistory || [], partnerData: res.partnerData }
+        : { students: [], partnerData: null };
+    } else if (
+      ["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "")
+    ) {
+      if (!selectedHalaqah) return { students: [], partnerData: null };
+      const res = await getMurojaahByDate(selectedHalaqah, selectedDate);
+      return res.success
+        ? { students: res.data || [], partnerData: null }
+        : { students: [], partnerData: null };
     }
-    setIsLoading(false);
+    return { students: [], partnerData: null };
   };
+  const {
+    data: swrData = { students: [], partnerData: null },
+    isLoading,
+    mutate,
+  } = useSWR(swrKey, fetcher, {
+    fallbackData: { students: [], partnerData: null },
+  });
 
-  const filteredData = studentsData.filter((item) => {
+  const studentsData: any[] = swrData.students;
+  const muridPartnerData: any = swrData.partnerData;
+
+  const filteredData = studentsData.filter((item: any) => {
     if (
       ["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "")
     ) {
@@ -201,37 +199,43 @@ export default function MurojaahPage() {
       type: "confirm",
       onConfirm: async () => {
         setAlertConfig((prev) => ({ ...prev, isOpen: false }));
-        
+
         // Optimistic UI
-        setStudentsData((prev) =>
-          prev.map((s) =>
-            s._id === studentId
-              ? {
-                  ...s,
-                  murojaahPartnerComplete: false,
-                  murojaahPartnerJuz: null,
-                  murojaahPartnerDari: null,
-                  murojaahPartnerKe: null,
-                  tatsbitComplete: false,
-                  tatsbitJuz: null,
-                  tatsbitDari: null,
-                  tatsbitKe: null,
-                  tatsbitNilai: null,
-                }
-              : s
-          )
+        mutate(
+          (prev: any) => ({
+            ...prev,
+            students: prev?.students.map((s: any) =>
+              s._id === studentId
+                ? {
+                    ...s,
+                    hasTatsbit: false,
+                    tatsbitJuz: null,
+                    tatsbitHalamanDari: null,
+                    tatsbitHalamanKe: null,
+                    tatsbitNilai: null,
+                  }
+                : s,
+            ),
+          }),
+          false,
         );
 
         if (isOnline) {
-          const res = await resetMurojaahTatsbitData(studentId, itemDate);
-          if (!res.success) {
-            showAlert("Gagal", "Gagal mereset data: " + res.error);
-            fetchData(); // rollback
+          try {
+            const res = await resetMurojaahTatsbitData(studentId, itemDate);
+            if (!res.success) {
+              showAlert("Gagal", "Gagal mereset data: " + res.error);
+              mutate(); // rollback
+            }
+          } catch (error) {
+            console.error(error);
+            showAlert("Error", "Gagal menghubungi server");
+            mutate();
           }
         } else {
           // add to sync queue if offline (optional/todo)
         }
-      }
+      },
     });
   };
 
@@ -245,7 +249,13 @@ export default function MurojaahPage() {
         const payload = {
           studentId: selectedStudent,
           dateStr: formData.tanggal,
-          originalDateStr: selectedDate || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0],
+          originalDateStr:
+            selectedDate ||
+            new Date(
+              new Date().getTime() - new Date().getTimezoneOffset() * 60000,
+            )
+              .toISOString()
+              .split("T")[0],
           murojaahData: {
             juz: parseInt(formData.partnerJuz),
             halamanDari: formData.partnerHalDari,
@@ -258,7 +268,7 @@ export default function MurojaahPage() {
             payload.studentId,
             payload.dateStr,
             payload.murojaahData,
-            payload.originalDateStr
+            payload.originalDateStr,
           );
           if (res.success) result = true;
           else
@@ -278,7 +288,13 @@ export default function MurojaahPage() {
         const payload = {
           studentId: selectedStudent,
           dateStr: formData.tanggal,
-          originalDateStr: selectedDate || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0],
+          originalDateStr:
+            selectedDate ||
+            new Date(
+              new Date().getTime() - new Date().getTimezoneOffset() * 60000,
+            )
+              .toISOString()
+              .split("T")[0],
           tatsbitData: {
             juz: parseInt(formData.tatsbitJuz),
             halamanDari: formData.tatsbitHalDari,
@@ -292,7 +308,7 @@ export default function MurojaahPage() {
             payload.studentId,
             payload.dateStr,
             payload.tatsbitData,
-            payload.originalDateStr
+            payload.originalDateStr,
           );
           if (res.success) result = true;
           else
@@ -308,8 +324,7 @@ export default function MurojaahPage() {
 
       if (result) {
         setActiveModal(null);
-        if (state.currentRole === "murid") fetchStudentData(selectedDate);
-        else fetchData();
+        mutate();
       }
     } catch (error) {
       console.error(error);
@@ -320,7 +335,7 @@ export default function MurojaahPage() {
   };
 
   return (
-    <main className="p-4 md:p-6 pb-24 md:pb-6 max-w-7xl mx-auto space-y-6">
+    <main className="px-5 md:p-6 pb-24 md:pb-6 max-w-7xl mx-auto space-y-6">
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
         <div>
@@ -334,7 +349,9 @@ export default function MurojaahPage() {
       </div>
 
       {/* Control Bar */}
-      {["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "") &&
+      {["guru", "admin-tenant", "super-admin"].includes(
+        state.currentRole || "",
+      ) &&
         halaqahs.length > 0 && (
           <select
             value={selectedHalaqah}
@@ -444,7 +461,7 @@ export default function MurojaahPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-600">
-                {filteredData.map((item) => (
+                {filteredData.map((item: any) => (
                   <tr key={item._id} className="hover:bg-slate-50 transition">
                     <td
                       className="px-4 py-3 truncate max-w-[80px]"
@@ -532,14 +549,22 @@ export default function MurojaahPage() {
                     </td>
 
                     {/* Kolom Aksi Khusus Guru / Admin */}
-                    {["guru", "admin-tenant"].includes(state.currentRole || "") && (
+                    {["guru", "admin-tenant"].includes(
+                      state.currentRole || "",
+                    ) && (
                       <td className="px-2 py-3 text-center">
                         <div className="flex justify-center gap-2 text-slate-400">
                           <button
                             title="Reset Data"
                             onClick={() => {
-                              if (item.murojaahPartnerComplete || item.tatsbitComplete) {
-                                handleDelete(item._id, selectedDate || item.tanggal);
+                              if (
+                                item.murojaahPartnerComplete ||
+                                item.tatsbitComplete
+                              ) {
+                                handleDelete(
+                                  item._id,
+                                  selectedDate || item.tanggal,
+                                );
                               }
                             }}
                             className={`hover:text-red-500 transition ${!item.murojaahPartnerComplete && !item.tatsbitComplete ? "opacity-30 cursor-not-allowed" : ""}`}
@@ -579,8 +604,9 @@ export default function MurojaahPage() {
               <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-2">
                 Santri
               </label>
-              <div className="w-full px-4 py-3 rounded-2xl bg-slate-100 border-none outline-none text-sm font-bold text-slate-600 cursor-not-allowed">
-                {studentsData.find(s => s._id === selectedStudent)?.studentName || "-"}
+              <div className="w-full px-4 py-3 rounded-2xl bg-slate-100 border-none outline-none text-slate-700 font-bold text-sm select-none">
+                {studentsData.find((s: any) => s._id === selectedStudent)
+                  ?.studentName || "-"}
               </div>
             </div>
 

@@ -1,4 +1,5 @@
 "use server";
+import { getStartOfDayUTC } from '@/lib/dateHelpers';
 import dbConnect from "@/lib/db";
 import { MutabaahDaily } from "@/models/MutabaahDaily";
 import { Student } from "@/models/Student";
@@ -100,77 +101,102 @@ export async function submitZiyadahData(studentId: string, data: any) {
       return { success: false, error: "Akses ditolak" };
     }
 
-    const queryDate = new Date(data.originalDateStr || data.tanggal);
-    queryDate.setHours(0, 0, 0, 0);
-    const nextDay = new Date(queryDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-
-    // Cari apakah mutabaah tanggal tersebut sudah ada
-    let mutabaah = await MutabaahDaily.findOne({
-      studentId: new mongoose.Types.ObjectId(studentId),
-      tanggal: { $gte: queryDate, $lt: nextDay },
-    });
-
     const student = await Student.findById(studentId);
     if (!student) return { success: false, error: "Murid tidak ditemukan" };
 
-    if (!mutabaah) {
-      const newTargetDate = new Date(data.tanggal);
-      newTargetDate.setHours(0, 0, 0, 0);
-      // Buat baru jika belum ada
-      mutabaah = new MutabaahDaily({
+    // 1. Dapatkan/Buat Mutabaah untuk tanggal Target (data.tanggal)
+    const targetDate = new Date(data.tanggal);
+    targetDate.setHours(0, 0, 0, 0);
+    const targetNextDay = new Date(targetDate);
+    targetNextDay.setDate(targetNextDay.getDate() + 1);
+
+    let targetMutabaah = await MutabaahDaily.findOne({
+      studentId: new mongoose.Types.ObjectId(studentId),
+      tanggal: { $gte: targetDate, $lt: targetNextDay },
+    });
+
+    if (!targetMutabaah) {
+      targetMutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
         guruId: new mongoose.Types.ObjectId((session.user as any).id),
-        tanggal: newTargetDate,
+        tanggal: targetDate,
         presensi: { dzikirPagiPetang: false, matanTuhfahJazari: false },
         ziyadah: { hasSetoran: false, talaqqiTakrir: false, binNadzorComplete: false },
         murojaahPartner: { isCompleted: false },
         tatsbit: { isCompleted: false }
       });
-    } else if (data.originalDateStr && data.originalDateStr !== data.tanggal) {
-      // Jika user mengubah tanggal di modal edit
-      const newTargetDate = new Date(data.tanggal);
-      newTargetDate.setHours(0, 0, 0, 0);
-      mutabaah.tanggal = newTargetDate;
     }
 
-    // Update field ziyadah berdasarkan input
+    // 2. Jika user mengubah tanggal di modal edit (dari originalDateStr ke tanggal baru)
+    if (data.originalDateStr && data.originalDateStr !== data.tanggal) {
+      const oldDate = new Date(data.originalDateStr);
+      oldDate.setHours(0, 0, 0, 0);
+      const oldNextDay = new Date(oldDate);
+      oldNextDay.setDate(oldNextDay.getDate() + 1);
+
+      let oldMutabaah = await MutabaahDaily.findOne({
+        studentId: new mongoose.Types.ObjectId(studentId),
+        tanggal: { $gte: oldDate, $lt: oldNextDay },
+      });
+
+      if (oldMutabaah) {
+        // Hapus data ziyadah dari tanggal yang lama karena sudah dipindah
+        if (data.type === 'setoran') {
+          oldMutabaah.ziyadah.hasSetoran = false;
+          oldMutabaah.ziyadah.juz = undefined;
+          oldMutabaah.ziyadah.halamanDari = undefined;
+          oldMutabaah.ziyadah.halamanKe = undefined;
+          oldMutabaah.ziyadah.nilaiKelancaran = undefined;
+        } else if (data.type === 'talaqqi') {
+          oldMutabaah.ziyadah.talaqqiTakrir = false;
+          oldMutabaah.ziyadah.talaqqiCount = undefined;
+        } else if (data.type === 'binnadzor') {
+          oldMutabaah.ziyadah.binNadzorComplete = false;
+          oldMutabaah.ziyadah.binNadzorJuz = undefined;
+          oldMutabaah.ziyadah.binNadzorHalamanDari = undefined;
+          oldMutabaah.ziyadah.binNadzorHalamanKe = undefined;
+        }
+        await oldMutabaah.save();
+      }
+    }
+
+    // 3. Update field ziyadah di targetMutabaah berdasarkan input
     if (data.isReset) {
       if (data.type === 'setoran') {
-        mutabaah.ziyadah.hasSetoran = false;
-        mutabaah.ziyadah.juz = null;
-        mutabaah.ziyadah.halamanDari = null;
-        mutabaah.ziyadah.halamanKe = null;
-        mutabaah.ziyadah.nilaiKelancaran = null;
+        targetMutabaah.ziyadah.hasSetoran = false;
+        targetMutabaah.ziyadah.juz = undefined;
+        targetMutabaah.ziyadah.halamanDari = undefined;
+        targetMutabaah.ziyadah.halamanKe = undefined;
+        targetMutabaah.ziyadah.nilaiKelancaran = undefined;
       } else if (data.type === 'talaqqi') {
-        mutabaah.ziyadah.talaqqiTakrir = false;
-        mutabaah.ziyadah.talaqqiCount = 0;
+        targetMutabaah.ziyadah.talaqqiTakrir = false;
+        targetMutabaah.ziyadah.talaqqiCount = undefined;
       } else if (data.type === 'binnadzor') {
-        mutabaah.ziyadah.binNadzorComplete = false;
-        mutabaah.ziyadah.binNadzorJuz = null;
-        mutabaah.ziyadah.binNadzorHalamanDari = null;
-        mutabaah.ziyadah.binNadzorHalamanKe = null;
+        targetMutabaah.ziyadah.binNadzorComplete = false;
+        targetMutabaah.ziyadah.binNadzorJuz = undefined;
+        targetMutabaah.ziyadah.binNadzorHalamanDari = undefined;
+        targetMutabaah.ziyadah.binNadzorHalamanKe = undefined;
       }
     } else {
       if (data.type === 'setoran') {
-        mutabaah.ziyadah.hasSetoran = true;
-        mutabaah.ziyadah.juz = data.juz;
-        mutabaah.ziyadah.halamanDari = data.halamanDari;
-        mutabaah.ziyadah.halamanKe = data.halamanKe;
-        mutabaah.ziyadah.nilaiKelancaran = data.nilaiKelancaran;
+        targetMutabaah.ziyadah.hasSetoran = true;
+        targetMutabaah.ziyadah.juz = data.juz;
+        targetMutabaah.ziyadah.halamanDari = data.halamanDari;
+        targetMutabaah.ziyadah.halamanKe = data.halamanKe;
+        targetMutabaah.ziyadah.nilaiKelancaran = data.nilaiKelancaran;
       } else if (data.type === 'talaqqi') {
-        mutabaah.ziyadah.talaqqiTakrir = (data.talaqqiCount >= 20);
-        mutabaah.ziyadah.talaqqiCount = data.talaqqiCount;
+        targetMutabaah.ziyadah.talaqqiTakrir = (data.talaqqiCount >= 20);
+        targetMutabaah.ziyadah.talaqqiCount = data.talaqqiCount;
       } else if (data.type === 'binnadzor') {
-        mutabaah.ziyadah.binNadzorComplete = true;
-        mutabaah.ziyadah.binNadzorJuz = data.juz;
-        mutabaah.ziyadah.binNadzorHalamanDari = data.halamanDari;
-        mutabaah.ziyadah.binNadzorHalamanKe = data.halamanKe;
+        targetMutabaah.ziyadah.binNadzorComplete = true;
+        targetMutabaah.ziyadah.binNadzorJuz = data.juz;
+        targetMutabaah.ziyadah.binNadzorHalamanDari = data.halamanDari;
+        targetMutabaah.ziyadah.binNadzorHalamanKe = data.halamanKe;
       }
     }
 
-    await mutabaah.save();
+    await targetMutabaah.save();
     return { success: true };
   } catch (error: any) {
     console.error("Error submitZiyadahData:", error);

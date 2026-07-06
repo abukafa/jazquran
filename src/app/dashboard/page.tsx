@@ -6,7 +6,7 @@ export default function DashboardHome() {
   const { state } = useAppContext();
 
   return (
-    <div className="px-5 space-y-6">
+    <div className="px-5 mt-4 space-y-6">
       {/* Sub-dashboard injected dynamically based on role (placeholder for now) */}
       <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
         <h3 className="font-bold text-slate-800">Selamat datang di Dasbor!</h3>

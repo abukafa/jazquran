@@ -33,7 +33,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 export default function GraphPage() {
@@ -47,7 +47,7 @@ export default function GraphPage() {
       setIsLoading(true);
       const role = state.currentRole;
       let res: any = null;
-      
+
       const userId = (session?.user as any)?.id;
       const tenantId = (session?.user as any)?.tenantId;
 
@@ -60,86 +60,135 @@ export default function GraphPage() {
       } else if (role === "murid" && userId) {
         res = await getMuridAnalytics(userId);
       }
-      
+
       if (res && res.success) {
         setData(res);
       }
       setIsLoading(false);
     }
-    
+
     if (state.currentRole && session) {
       fetchData();
     }
   }, [state.currentRole, session]);
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-400">Memuat analitik...</div>;
-  }
-  
-  if (!data) {
-    return <div className="p-8 text-center text-slate-400">Gagal memuat analitik.</div>;
+    return (
+      <div className="p-8 text-center text-slate-400">Memuat analitik...</div>
+    );
   }
 
-  const roleTitle = state.currentRole === "super-admin" ? "Statistik Global" :
-                    state.currentRole === "admin-tenant" ? "Statistik Cabang" :
-                    state.currentRole === "guru" ? "Statistik Halaqah" : "Statistik Pribadi";
+  if (!data) {
+    return (
+      <div className="p-8 text-center text-slate-400">
+        Gagal memuat analitik.
+      </div>
+    );
+  }
+
+  const roleTitle =
+    state.currentRole === "super-admin"
+      ? "Statistik Global"
+      : state.currentRole === "admin-tenant"
+        ? "Statistik Cabang"
+        : state.currentRole === "guru"
+          ? "Statistik Halaqah"
+          : "Statistik Pribadi";
 
   return (
-    <div className="px-5 space-y-6 pb-6">
+    <div className="px-5 mt-2 space-y-6 pb-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-extrabold text-slate-800">Analisis Progres</h3>
-        <span className="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full">{roleTitle}</span>
+        <h3 className="text-lg font-extrabold text-slate-800">
+          Analisis Progres
+        </h3>
+        <span className="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full">
+          {roleTitle}
+        </span>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
         <div className="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-          <span className="text-[9px] text-slate-400 font-bold block uppercase">{state.currentRole === "super-admin" ? "Cabang" : "Ziyadah"}</span>
-          <span className="text-lg font-black text-sage-500">{state.currentRole === "super-admin" ? data.stats.tenants : data.stats.ziyadah}</span>
-          <span className="text-[9px] text-slate-400 block">{state.currentRole === "super-admin" ? "Tenant Aktif" : "Total Setoran"}</span>
+          <span className="text-[9px] text-slate-400 font-bold block uppercase">
+            {state.currentRole === "super-admin" ? "Cabang" : "Ziyadah"}
+          </span>
+          <span className="text-lg font-black text-sage-500">
+            {state.currentRole === "super-admin"
+              ? data.stats.tenants
+              : data.stats.ziyadah}
+          </span>
+          <span className="text-[9px] text-slate-400 block">
+            {state.currentRole === "super-admin"
+              ? "Tenant Aktif"
+              : "Total Setoran"}
+          </span>
         </div>
         <div className="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-          <span className="text-[9px] text-slate-400 font-bold block uppercase">{state.currentRole === "super-admin" ? "Halaqah" : "Muroja'ah"}</span>
-          <span className="text-lg font-black text-amber-500">{state.currentRole === "super-admin" ? data.stats.halaqahs : data.stats.murojaah}</span>
-          <span className="text-[9px] text-slate-400 block">{state.currentRole === "super-admin" ? "Halaqah Aktif" : "Partner"}</span>
+          <span className="text-[9px] text-slate-400 font-bold block uppercase">
+            {state.currentRole === "super-admin" ? "Halaqah" : "Muroja'ah"}
+          </span>
+          <span className="text-lg font-black text-amber-500">
+            {state.currentRole === "super-admin"
+              ? data.stats.halaqahs
+              : data.stats.murojaah}
+          </span>
+          <span className="text-[9px] text-slate-400 block">
+            {state.currentRole === "super-admin" ? "Halaqah Aktif" : "Partner"}
+          </span>
         </div>
         <div className="bg-white p-3 rounded-2xl text-center border border-slate-100 shadow-sm">
-          <span className="text-[9px] text-slate-400 font-bold block uppercase">{state.currentRole === "super-admin" ? "Santri" : "Tatsbit"}</span>
-          <span className="text-lg font-black text-blue-500">{state.currentRole === "super-admin" ? data.stats.students : data.stats.tatsbit}</span>
-          <span className="text-[9px] text-slate-400 block">{state.currentRole === "super-admin" ? "Total Santri" : "Penyimak Guru"}</span>
+          <span className="text-[9px] text-slate-400 font-bold block uppercase">
+            {state.currentRole === "super-admin" ? "Santri" : "Tatsbit"}
+          </span>
+          <span className="text-lg font-black text-blue-500">
+            {state.currentRole === "super-admin"
+              ? data.stats.students
+              : data.stats.tatsbit}
+          </span>
+          <span className="text-[9px] text-slate-400 block">
+            {state.currentRole === "super-admin"
+              ? "Total Santri"
+              : "Penyimak Guru"}
+          </span>
         </div>
       </div>
 
       <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-        <h4 className="font-bold text-slate-800 text-sm mb-3">Aktivitas Harian (7 Hari Terakhir)</h4>
+        <h4 className="font-bold text-slate-800 text-sm mb-3">
+          Aktivitas Harian (7 Hari Terakhir)
+        </h4>
         <div className="h-44 w-full">
-          <Line 
+          <Line
             data={{
               labels: data.dailyChart.labels,
               datasets: data.dailyChart.datasets.map((ds: any, i: number) => ({
                 ...ds,
-                borderColor: i === 0 ? '#2D7A60' : '#E8F2ED',
-                backgroundColor: i === 0 ? '#D1E5DB' : '#E8F2ED',
+                borderColor: i === 0 ? "#2D7A60" : "#E8F2ED",
+                backgroundColor: i === 0 ? "#D1E5DB" : "#E8F2ED",
                 tension: 0.4,
                 fill: i === 0 ? true : false,
-              }))
+              })),
             }}
             options={{ responsive: true, maintainAspectRatio: false }}
           />
         </div>
       </div>
-      
+
       {state.currentRole === "super-admin" && data.barChart && (
         <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-          <h4 className="font-bold text-slate-800 text-sm mb-3">Top 5 Cabang (Jml Santri)</h4>
+          <h4 className="font-bold text-slate-800 text-sm mb-3">
+            Top 5 Cabang (Jml Santri)
+          </h4>
           <div className="h-44 w-full">
-            <Bar 
+            <Bar
               data={{
                 labels: data.barChart.labels,
-                datasets: [{
-                  label: "Jumlah Santri",
-                  data: data.barChart.data,
-                  backgroundColor: '#2D7A60'
-                }]
+                datasets: [
+                  {
+                    label: "Jumlah Santri",
+                    data: data.barChart.data,
+                    backgroundColor: "#2D7A60",
+                  },
+                ],
               }}
               options={{ responsive: true, maintainAspectRatio: false }}
             />
@@ -148,17 +197,25 @@ export default function GraphPage() {
       )}
 
       <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-        <h4 className="font-bold text-slate-800 text-sm mb-3">Distribusi Nilai Kelancaran</h4>
+        <h4 className="font-bold text-slate-800 text-sm mb-3">
+          Distribusi Nilai Kelancaran
+        </h4>
         <div className="h-44 w-full flex justify-center">
-          <Doughnut 
+          <Doughnut
             data={{
               labels: data.doughnutChart.labels,
-              datasets: [{
-                data: data.doughnutChart.data,
-                backgroundColor: ['#2D7A60', '#679E83', '#D1E5DB']
-              }]
+              datasets: [
+                {
+                  data: data.doughnutChart.data,
+                  backgroundColor: ["#2D7A60", "#679E83", "#D1E5DB"],
+                },
+              ],
             }}
-            options={{ responsive: true, maintainAspectRatio: false, cutout: '70%' }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: "70%",
+            }}
           />
         </div>
       </div>
