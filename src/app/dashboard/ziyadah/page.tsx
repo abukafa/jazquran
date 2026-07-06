@@ -55,7 +55,7 @@ export default function ZiyadahPage() {
   ]);
 
   useEffect(() => {
-    if (state.currentRole === "admin-tenant" || state.currentRole === "super-admin") {
+    if (["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "")) {
       fetchHalaqahs();
     } else if (state.currentRole === "murid") {
       setSelectedDate(""); // Clear date by default for murid to show history
@@ -63,9 +63,7 @@ export default function ZiyadahPage() {
   }, [state.currentRole]);
 
   useEffect(() => {
-    if (["admin-tenant", "super-admin"].includes(state.currentRole || "") && selectedHalaqah) {
-      fetchData();
-    } else if (state.currentRole === "guru") {
+    if (["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "") && selectedHalaqah) {
       fetchData();
     } else if (state.currentRole === "murid") {
       fetchStudentData(selectedDate);
@@ -84,7 +82,7 @@ export default function ZiyadahPage() {
 
   const fetchData = async () => {
     setIsLoading(true);
-    const hId = state.currentRole === "guru" ? undefined : selectedHalaqah;
+    const hId = selectedHalaqah;
     const res = await getZiyadahByDate(hId as any, selectedDate);
     if (res.success && res.data) {
       setStudentsData(res.data);
@@ -308,7 +306,7 @@ export default function ZiyadahPage() {
         )}
       </div>
 
-      {["admin-tenant", "super-admin"].includes(state.currentRole || "") && halaqahs.length > 0 && (
+      {["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "") && halaqahs.length > 0 && (
         <select
           value={selectedHalaqah}
           onChange={(e) => setSelectedHalaqah(e.target.value)}

@@ -78,8 +78,7 @@ export default function MurojaahPage() {
 
   useEffect(() => {
     if (
-      state.currentRole === "admin-tenant" ||
-      state.currentRole === "super-admin"
+      ["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "")
     ) {
       fetchHalaqahs();
     } else if (state.currentRole === "murid") {
@@ -89,11 +88,9 @@ export default function MurojaahPage() {
 
   useEffect(() => {
     if (
-      ["admin-tenant", "super-admin"].includes(state.currentRole || "") &&
+      ["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "") &&
       selectedHalaqah
     ) {
-      fetchData();
-    } else if (state.currentRole === "guru") {
       fetchData();
     } else if (state.currentRole === "murid") {
       fetchStudentData(selectedDate);
@@ -110,7 +107,7 @@ export default function MurojaahPage() {
 
   const fetchData = async () => {
     setIsLoading(true);
-    const hId = state.currentRole === "guru" ? undefined : selectedHalaqah;
+    const hId = selectedHalaqah;
     const res = await getMurojaahByDate(hId as any, selectedDate);
     if (res.success && res.data) {
       setStudentsData(res.data);
@@ -337,7 +334,7 @@ export default function MurojaahPage() {
       </div>
 
       {/* Control Bar */}
-      {["admin-tenant", "super-admin"].includes(state.currentRole || "") &&
+      {["guru", "admin-tenant", "super-admin"].includes(state.currentRole || "") &&
         halaqahs.length > 0 && (
           <select
             value={selectedHalaqah}

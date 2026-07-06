@@ -22,8 +22,12 @@ export async function getMurojaahByDate(halaqahId: string | undefined, dateStr: 
     let studentQuery: any = { isActive: true };
 
     if (role === "guru") {
-      const halaqahs = await mongoose.models.Halaqah.find({ guruId: userId }).select('_id').lean();
-      studentQuery.halaqahId = { $in: halaqahs.map((h: any) => h._id) };
+      if (halaqahId) {
+        studentQuery.halaqahId = new mongoose.Types.ObjectId(halaqahId);
+      } else {
+        const halaqahs = await mongoose.models.Halaqah.find({ guruId: userId }).select('_id').lean();
+        studentQuery.halaqahId = { $in: halaqahs.map((h: any) => h._id) };
+      }
     } else {
       if (!halaqahId) return { success: true, data: [] };
       studentQuery.halaqahId = new mongoose.Types.ObjectId(halaqahId);
@@ -33,7 +37,7 @@ export async function getMurojaahByDate(halaqahId: string | undefined, dateStr: 
       }
     }
 
-    const students = await Student.find(studentQuery).populate("partnerId", "nama").lean();
+    const students = await Student.find(studentQuery).populate("partnerId", "nama").sort({ nama: 1 }).lean();
 
     if (!students || students.length === 0) {
       return { success: true, data: [] };

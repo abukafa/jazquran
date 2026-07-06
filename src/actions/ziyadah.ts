@@ -21,9 +21,13 @@ export async function getZiyadahByDate(halaqahId: string | undefined, dateStr: s
     let studentQuery: any = { isActive: true };
 
     if (role === "guru") {
-      // Guru melihat semua murid di semua halaqahnya
-      const halaqahs = await mongoose.models.Halaqah.find({ guruId: userId }).select('_id').lean();
-      studentQuery.halaqahId = { $in: halaqahs.map((h: any) => h._id) };
+      // Guru melihat semua murid di halaqah yang dipilih, atau semua halaqahnya jika tidak memilih
+      if (halaqahId) {
+        studentQuery.halaqahId = new mongoose.Types.ObjectId(halaqahId);
+      } else {
+        const halaqahs = await mongoose.models.Halaqah.find({ guruId: userId }).select('_id').lean();
+        studentQuery.halaqahId = { $in: halaqahs.map((h: any) => h._id) };
+      }
     } else {
       // Admin / Super Admin wajib mengirimkan halaqahId untuk memfilter tabel
       if (!halaqahId) return { success: true, data: [] };
@@ -35,8 +39,8 @@ export async function getZiyadahByDate(halaqahId: string | undefined, dateStr: s
       }
     }
 
-    // 1. Dapatkan semua murid yang sesuai kriteria
-    const students = await Student.find(studentQuery).lean();
+    // 1. Dapatkan semua murid yang sesuai kriteria dan urutkan berdasarkan nama
+    const students = await Student.find(studentQuery).sort({ nama: 1 }).lean();
 
     if (!students || students.length === 0) {
       return { success: true, data: [] };
