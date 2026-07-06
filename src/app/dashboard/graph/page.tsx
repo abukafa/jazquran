@@ -162,8 +162,8 @@ export default function GraphPage() {
               labels: data.dailyChart.labels,
               datasets: data.dailyChart.datasets.map((ds: any, i: number) => ({
                 ...ds,
-                borderColor: i === 0 ? "#2D7A60" : "#E8F2ED",
-                backgroundColor: i === 0 ? "#D1E5DB" : "#E8F2ED",
+                borderColor: i === 0 ? "#2D7A60" : "#F59E0B",
+                backgroundColor: i === 0 ? "#D1E5DB" : "#FEF3C7",
                 tension: 0.4,
                 fill: i === 0 ? true : false,
               })),
@@ -200,23 +200,27 @@ export default function GraphPage() {
         <h4 className="font-bold text-slate-800 text-sm mb-3">
           Distribusi Nilai Kelancaran
         </h4>
-        <div className="h-44 w-full flex justify-center">
-          <Doughnut
-            data={{
-              labels: data.doughnutChart.labels,
-              datasets: [
-                {
-                  data: data.doughnutChart.data,
-                  backgroundColor: ["#2D7A60", "#679E83", "#D1E5DB"],
-                },
-              ],
-            }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              cutout: "70%",
-            }}
-          />
+        <div className="h-44 w-full flex justify-center items-center">
+          {data.doughnutChart.data.every((val: number) => val === 0) ? (
+            <span className="text-sm text-slate-400 font-medium italic">Belum ada data Tatsbit</span>
+          ) : (
+            <Doughnut
+              data={{
+                labels: data.doughnutChart.labels,
+                datasets: [
+                  {
+                    data: data.doughnutChart.data,
+                    backgroundColor: ["#2D7A60", "#679E83", "#D1E5DB"],
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "70%",
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

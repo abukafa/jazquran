@@ -1,4 +1,5 @@
 "use server";
+import { getStartOfDayUTC } from "@/lib/dateHelpers";
 import connectDB from "@/lib/db";
 import { MutabaahDaily } from "@/models/MutabaahDaily";
 import { Student } from "@/models/Student";
@@ -6,21 +7,21 @@ import { Halaqah } from "@/models/Halaqah";
 import { Tenant } from "@/models/Tenant";
 import mongoose from "mongoose";
 
-// Utility: Mendapatkan N hari ke belakang (tanpa jam)
+// Utility: Mendapatkan N hari ke belakang dengan aman (UTC Start of Day)
 const getLastNDays = (n: number) => {
   const dates = [];
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    d.setHours(0, 0, 0, 0);
-    dates.push(d);
+    dates.push(getStartOfDayUTC(d));
   }
   return dates;
 };
 
+// Mengambil UTC Date untuk sinkronisasi dengan MongoDB aggregate $dayOfMonth
 const formatDateObj = (d: Date) => {
-  const day = d.getDate().toString().padStart(2, "0");
-  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  const day = d.getUTCDate().toString().padStart(2, "0");
+  const month = (d.getUTCMonth() + 1).toString().padStart(2, "0");
   return `${day}/${month}`;
 };
 

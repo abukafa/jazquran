@@ -304,9 +304,8 @@ export default function ZiyadahPage() {
 
     // Optimistic UI update for current view
     mutate(
-      (prev: any) => ({
-        ...prev,
-        students: prev?.students.map((s: any) => {
+      (prev: any) =>
+        prev?.map((s: any) => {
           if (s.studentId === selectedStudent) {
             if (activeModal === "setoran") {
               return { ...s, hasSetoran: true, ...formData };
@@ -328,8 +327,7 @@ export default function ZiyadahPage() {
           }
           return s;
         }),
-      }),
-      false,
+      false
     );
 
     setActiveModal(null);
