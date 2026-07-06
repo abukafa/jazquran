@@ -162,10 +162,10 @@ export default function GraphPage() {
               labels: data.dailyChart.labels,
               datasets: data.dailyChart.datasets.map((ds: any, i: number) => ({
                 ...ds,
-                borderColor: i === 0 ? "#2D7A60" : "#F59E0B",
-                backgroundColor: i === 0 ? "#D1E5DB" : "#FEF3C7",
+                borderColor: i === 0 ? "#2D7A60" : i === 1 ? "#F59E0B" : "#3B82F6",
+                backgroundColor: i === 0 ? "#D1E5DB" : i === 1 ? "#FEF3C7" : "#DBEAFE",
                 tension: 0.4,
-                fill: i === 0 ? true : false,
+                fill: false,
               })),
             }}
             options={{ responsive: true, maintainAspectRatio: false }}
@@ -202,7 +202,7 @@ export default function GraphPage() {
         </h4>
         <div className="h-44 w-full flex justify-center items-center">
           {data.doughnutChart.data.every((val: number) => val === 0) ? (
-            <span className="text-sm text-slate-400 font-medium italic">Belum ada data Tatsbit</span>
+            <span className="text-sm text-slate-400 font-medium italic">Belum ada data Kelancaran Ziyadah</span>
           ) : (
             <Doughnut
               data={{

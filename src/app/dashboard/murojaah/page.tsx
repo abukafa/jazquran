@@ -484,7 +484,7 @@ export default function MurojaahPage() {
                             {item.studentName}
                           </p>
                           <p className="text-[9px] text-slate-400 mt-0.5 truncate">
-                            P: {item.partnerName}
+                            {item.partnerName}
                           </p>
                         </div>
                       )}

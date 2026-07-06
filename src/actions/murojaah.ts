@@ -107,7 +107,7 @@ export async function submitMurojaahPartnerData(
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
 
-    const student = await Student.findById(studentId);
+    const student = await Student.findById(studentId).populate("halaqahId");
     if (!student) return { success: false, error: "Murid tidak ditemukan" };
 
     // Validasi Izin Akses (Mekanisme Penguncian / Hak Akses)
@@ -138,10 +138,15 @@ export async function submitMurojaahPartnerData(
     });
 
     if (!targetMutabaah) {
+      let actualGuruId = role === "guru" ? userId : undefined;
+      if (student.halaqahId && (student.halaqahId as any).guruId) {
+        actualGuruId = (student.halaqahId as any).guruId;
+      }
+      
       targetMutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
-        guruId: role === "guru" ? userId : (student as any).halaqahId, // Guru ID fallback kalau murid yg submit
+        guruId: actualGuruId || (student as any).halaqahId,
         tanggal: targetDate,
         presensi: { dzikirPagiPetang: false, matanTuhfahJazari: false },
         ziyadah: { hasSetoran: false, talaqqiTakrir: false, binNadzorComplete: false },
@@ -210,7 +215,7 @@ export async function submitTatsbitData(
     }
 
     const userId = (session.user as any).id;
-    const student = await Student.findById(studentId);
+    const student = await Student.findById(studentId).populate("halaqahId");
     if (!student) return { success: false, error: "Murid tidak ditemukan" };
 
     // 1. Dapatkan/Buat Mutabaah untuk tanggal Target (dateStr)
@@ -225,10 +230,15 @@ export async function submitTatsbitData(
     });
 
     if (!targetMutabaah) {
+      let actualGuruId = userId;
+      if (student.halaqahId && (student.halaqahId as any).guruId) {
+        actualGuruId = (student.halaqahId as any).guruId;
+      }
+
       targetMutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
-        guruId: userId,
+        guruId: actualGuruId,
         tanggal: targetDate,
         presensi: { dzikirPagiPetang: false, matanTuhfahJazari: false },
         ziyadah: { hasSetoran: false, talaqqiTakrir: false, binNadzorComplete: false },

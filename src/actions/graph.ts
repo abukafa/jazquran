@@ -34,7 +34,7 @@ export async function getMuridAnalytics(studentId: string) {
       {
         $group: {
           _id: null,
-          ziyadahCount: { $sum: { $cond: ["$ziyadah.hasSetoran", 1, 0] } },
+          ziyadahCount: { $sum: { $cond: [{ $or: ["$ziyadah.hasSetoran", "$ziyadah.talaqqiTakrir", "$ziyadah.binNadzorComplete"] }, 1, 0] } },
           murojaahCount: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } },
           tatsbitCount: { $sum: { $cond: ["$tatsbit.isCompleted", 1, 0] } },
         }
@@ -47,28 +47,30 @@ export async function getMuridAnalytics(studentId: string) {
       {
         $group: {
           _id: { year: { $year: "$tanggal" }, month: { $month: "$tanggal" }, day: { $dayOfMonth: "$tanggal" } },
-          ziyadah: { $sum: { $cond: ["$ziyadah.hasSetoran", 1, 0] } },
-          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } }
+          ziyadah: { $sum: { $cond: [{ $or: ["$ziyadah.hasSetoran", "$ziyadah.talaqqiTakrir", "$ziyadah.binNadzorComplete"] }, 1, 0] } },
+          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } },
+          tatsbit: { $sum: { $cond: ["$tatsbit.isCompleted", 1, 0] } }
         }
       }
     ]);
 
-    const tatsbitGrades = await MutabaahDaily.aggregate([
-      { $match: { studentId: studentIdObj, "tatsbit.isCompleted": true } },
-      { $group: { _id: "$tatsbit.nilai", count: { $sum: 1 } } }
+    const kelancaranGrades = await MutabaahDaily.aggregate([
+      { $match: { studentId: studentIdObj, "ziyadah.nilaiKelancaran": { $exists: true, $ne: null } } },
+      { $group: { _id: "$ziyadah.nilaiKelancaran", count: { $sum: 1 } } }
     ]);
 
     const labels = sevenDays.map(d => formatDateObj(d));
     const ziyadahData = labels.map(() => 0);
     const murojaahData = labels.map(() => 0);
+    const tatsbitData = labels.map(() => 0);
     dailyStats.forEach((stat: any) => {
       const dateStr = `${stat._id.day.toString().padStart(2, "0")}/${stat._id.month.toString().padStart(2, "0")}`;
       const index = labels.indexOf(dateStr);
-      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; }
+      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; tatsbitData[index] = stat.tatsbit; }
     });
 
     let gradeA = 0, gradeB = 0, gradeC = 0;
-    tatsbitGrades.forEach((g: any) => {
+    kelancaranGrades.forEach((g: any) => {
       if (!g._id) return;
       if (g._id.startsWith("A")) gradeA += g.count;
       else if (g._id.startsWith("B")) gradeB += g.count;
@@ -78,7 +80,7 @@ export async function getMuridAnalytics(studentId: string) {
     return {
       success: true,
       stats: { ziyadah: stats[0]?.ziyadahCount || 0, murojaah: stats[0]?.murojaahCount || 0, tatsbit: stats[0]?.tatsbitCount || 0 },
-      dailyChart: { labels, datasets: [ { label: "Ziyadah", data: ziyadahData }, { label: "Partner", data: murojaahData } ] },
+      dailyChart: { labels, datasets: [ { label: "Ziyadah", data: ziyadahData }, { label: "Partner", data: murojaahData }, { label: "Tatsbit", data: tatsbitData } ] },
       doughnutChart: { labels: ["A (Sangat Lancar)", "B (Lancar)", "C (Kurang)"], data: [gradeA, gradeB, gradeC] }
     };
   } catch (error: any) { return { success: false, error: error.message }; }
@@ -94,7 +96,7 @@ export async function getGuruAnalytics(guruId: string) {
       {
         $group: {
           _id: null,
-          ziyadahCount: { $sum: { $cond: ["$ziyadah.hasSetoran", 1, 0] } },
+          ziyadahCount: { $sum: { $cond: [{ $or: ["$ziyadah.hasSetoran", "$ziyadah.talaqqiTakrir", "$ziyadah.binNadzorComplete"] }, 1, 0] } },
           murojaahCount: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } },
           tatsbitCount: { $sum: { $cond: ["$tatsbit.isCompleted", 1, 0] } },
         }
@@ -107,28 +109,30 @@ export async function getGuruAnalytics(guruId: string) {
       {
         $group: {
           _id: { day: { $dayOfMonth: "$tanggal" }, month: { $month: "$tanggal" } },
-          ziyadah: { $sum: { $cond: ["$ziyadah.hasSetoran", 1, 0] } },
-          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } }
+          ziyadah: { $sum: { $cond: [{ $or: ["$ziyadah.hasSetoran", "$ziyadah.talaqqiTakrir", "$ziyadah.binNadzorComplete"] }, 1, 0] } },
+          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } },
+          tatsbit: { $sum: { $cond: ["$tatsbit.isCompleted", 1, 0] } }
         }
       }
     ]);
 
-    const tatsbitGrades = await MutabaahDaily.aggregate([
-      { $match: { guruId: guruIdObj, "tatsbit.isCompleted": true } },
-      { $group: { _id: "$tatsbit.nilai", count: { $sum: 1 } } }
+    const kelancaranGrades = await MutabaahDaily.aggregate([
+      { $match: { guruId: guruIdObj, "ziyadah.nilaiKelancaran": { $exists: true, $ne: null } } },
+      { $group: { _id: "$ziyadah.nilaiKelancaran", count: { $sum: 1 } } }
     ]);
 
     const labels = sevenDays.map(d => formatDateObj(d));
     const ziyadahData = labels.map(() => 0);
     const murojaahData = labels.map(() => 0);
+    const tatsbitData = labels.map(() => 0);
     dailyStats.forEach((stat: any) => {
       const dateStr = `${stat._id.day.toString().padStart(2, "0")}/${stat._id.month.toString().padStart(2, "0")}`;
       const index = labels.indexOf(dateStr);
-      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; }
+      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; tatsbitData[index] = stat.tatsbit; }
     });
 
     let gradeA = 0, gradeB = 0, gradeC = 0;
-    tatsbitGrades.forEach((g: any) => {
+    kelancaranGrades.forEach((g: any) => {
       if (!g._id) return;
       if (g._id.startsWith("A")) gradeA += g.count;
       else if (g._id.startsWith("B")) gradeB += g.count;
@@ -138,7 +142,7 @@ export async function getGuruAnalytics(guruId: string) {
     return {
       success: true,
       stats: { ziyadah: stats[0]?.ziyadahCount || 0, murojaah: stats[0]?.murojaahCount || 0, tatsbit: stats[0]?.tatsbitCount || 0 },
-      dailyChart: { labels, datasets: [ { label: "Ziyadah Halaqah", data: ziyadahData }, { label: "Partner Halaqah", data: murojaahData } ] },
+      dailyChart: { labels, datasets: [ { label: "Ziyadah Halaqah", data: ziyadahData }, { label: "Partner Halaqah", data: murojaahData }, { label: "Tatsbit Halaqah", data: tatsbitData } ] },
       doughnutChart: { labels: ["A (Sangat Lancar)", "B (Lancar)", "C (Kurang)"], data: [gradeA, gradeB, gradeC] }
     };
   } catch (error: any) { return { success: false, error: error.message }; }
@@ -154,7 +158,7 @@ export async function getAdminAnalytics(tenantId: string) {
       {
         $group: {
           _id: null,
-          ziyadahCount: { $sum: { $cond: ["$ziyadah.hasSetoran", 1, 0] } },
+          ziyadahCount: { $sum: { $cond: [{ $or: ["$ziyadah.hasSetoran", "$ziyadah.talaqqiTakrir", "$ziyadah.binNadzorComplete"] }, 1, 0] } },
           murojaahCount: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } },
           tatsbitCount: { $sum: { $cond: ["$tatsbit.isCompleted", 1, 0] } },
         }
@@ -167,28 +171,30 @@ export async function getAdminAnalytics(tenantId: string) {
       {
         $group: {
           _id: { day: { $dayOfMonth: "$tanggal" }, month: { $month: "$tanggal" } },
-          ziyadah: { $sum: { $cond: ["$ziyadah.hasSetoran", 1, 0] } },
-          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } }
+          ziyadah: { $sum: { $cond: [{ $or: ["$ziyadah.hasSetoran", "$ziyadah.talaqqiTakrir", "$ziyadah.binNadzorComplete"] }, 1, 0] } },
+          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } },
+          tatsbit: { $sum: { $cond: ["$tatsbit.isCompleted", 1, 0] } }
         }
       }
     ]);
 
-    const tatsbitGrades = await MutabaahDaily.aggregate([
-      { $match: { tenantId: tenantIdObj, "tatsbit.isCompleted": true } },
-      { $group: { _id: "$tatsbit.nilai", count: { $sum: 1 } } }
+    const kelancaranGrades = await MutabaahDaily.aggregate([
+      { $match: { tenantId: tenantIdObj, "ziyadah.nilaiKelancaran": { $exists: true, $ne: null } } },
+      { $group: { _id: "$ziyadah.nilaiKelancaran", count: { $sum: 1 } } }
     ]);
 
     const labels = sevenDays.map(d => formatDateObj(d));
     const ziyadahData = labels.map(() => 0);
     const murojaahData = labels.map(() => 0);
+    const tatsbitData = labels.map(() => 0);
     dailyStats.forEach((stat: any) => {
       const dateStr = `${stat._id.day.toString().padStart(2, "0")}/${stat._id.month.toString().padStart(2, "0")}`;
       const index = labels.indexOf(dateStr);
-      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; }
+      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; tatsbitData[index] = stat.tatsbit; }
     });
 
     let gradeA = 0, gradeB = 0, gradeC = 0;
-    tatsbitGrades.forEach((g: any) => {
+    kelancaranGrades.forEach((g: any) => {
       if (!g._id) return;
       if (g._id.startsWith("A")) gradeA += g.count;
       else if (g._id.startsWith("B")) gradeB += g.count;
@@ -198,7 +204,7 @@ export async function getAdminAnalytics(tenantId: string) {
     return {
       success: true,
       stats: { ziyadah: stats[0]?.ziyadahCount || 0, murojaah: stats[0]?.murojaahCount || 0, tatsbit: stats[0]?.tatsbitCount || 0 },
-      dailyChart: { labels, datasets: [ { label: "Total Ziyadah Cabang", data: ziyadahData }, { label: "Total Partner Cabang", data: murojaahData } ] },
+      dailyChart: { labels, datasets: [ { label: "Total Ziyadah Cabang", data: ziyadahData }, { label: "Total Partner Cabang", data: murojaahData }, { label: "Total Tatsbit Cabang", data: tatsbitData } ] },
       doughnutChart: { labels: ["A (Sangat Lancar)", "B (Lancar)", "C (Kurang)"], data: [gradeA, gradeB, gradeC] }
     };
   } catch (error: any) { return { success: false, error: error.message }; }
@@ -227,8 +233,9 @@ export async function getSuperAdminAnalytics() {
       {
         $group: {
           _id: { day: { $dayOfMonth: "$tanggal" }, month: { $month: "$tanggal" } },
-          ziyadah: { $sum: { $cond: ["$ziyadah.hasSetoran", 1, 0] } },
-          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } }
+          ziyadah: { $sum: { $cond: [{ $or: ["$ziyadah.hasSetoran", "$ziyadah.talaqqiTakrir", "$ziyadah.binNadzorComplete"] }, 1, 0] } },
+          murojaah: { $sum: { $cond: ["$murojaahPartner.isCompleted", 1, 0] } },
+          tatsbit: { $sum: { $cond: ["$tatsbit.isCompleted", 1, 0] } }
         }
       }
     ]);
@@ -236,18 +243,19 @@ export async function getSuperAdminAnalytics() {
     const labels = sevenDays.map(d => formatDateObj(d));
     const ziyadahData = labels.map(() => 0);
     const murojaahData = labels.map(() => 0);
+    const tatsbitData = labels.map(() => 0);
     dailyStats.forEach((stat: any) => {
       const dateStr = `${stat._id.day.toString().padStart(2, "0")}/${stat._id.month.toString().padStart(2, "0")}`;
       const index = labels.indexOf(dateStr);
-      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; }
+      if (index !== -1) { ziyadahData[index] = stat.ziyadah; murojaahData[index] = stat.murojaah; tatsbitData[index] = stat.tatsbit; }
     });
 
-    const tatsbitGrades = await MutabaahDaily.aggregate([
-      { $match: { "tatsbit.isCompleted": true } },
-      { $group: { _id: "$tatsbit.nilai", count: { $sum: 1 } } }
+    const kelancaranGrades = await MutabaahDaily.aggregate([
+      { $match: { "ziyadah.nilaiKelancaran": { $exists: true, $ne: null } } },
+      { $group: { _id: "$ziyadah.nilaiKelancaran", count: { $sum: 1 } } }
     ]);
     let gradeA = 0, gradeB = 0, gradeC = 0;
-    tatsbitGrades.forEach((g: any) => {
+    kelancaranGrades.forEach((g: any) => {
       if (!g._id) return;
       if (g._id.startsWith("A")) gradeA += g.count;
       else if (g._id.startsWith("B")) gradeB += g.count;
@@ -258,7 +266,7 @@ export async function getSuperAdminAnalytics() {
       success: true,
       stats: { tenants: totalTenants, halaqahs: totalHalaqahs, students: totalStudents },
       barChart: { labels: tenantLabels, data: tenantData },
-      dailyChart: { labels, datasets: [ { label: "Global Ziyadah", data: ziyadahData }, { label: "Global Partner", data: murojaahData } ] },
+      dailyChart: { labels, datasets: [ { label: "Global Ziyadah", data: ziyadahData }, { label: "Global Partner", data: murojaahData }, { label: "Global Tatsbit", data: tatsbitData } ] },
       doughnutChart: { labels: ["A (Sangat Lancar)", "B (Lancar)", "C (Kurang)"], data: [gradeA, gradeB, gradeC] }
     };
   } catch (error: any) { return { success: false, error: error.message }; }

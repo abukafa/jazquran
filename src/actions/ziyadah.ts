@@ -101,7 +101,7 @@ export async function submitZiyadahData(studentId: string, data: any) {
       return { success: false, error: "Akses ditolak" };
     }
 
-    const student = await Student.findById(studentId);
+    const student = await Student.findById(studentId).populate("halaqahId");
     if (!student) return { success: false, error: "Murid tidak ditemukan" };
 
     // 1. Dapatkan/Buat Mutabaah untuk tanggal Target (data.tanggal)
@@ -116,10 +116,15 @@ export async function submitZiyadahData(studentId: string, data: any) {
     });
 
     if (!targetMutabaah) {
+      let actualGuruId = new mongoose.Types.ObjectId((session.user as any).id);
+      if (student.halaqahId && (student.halaqahId as any).guruId) {
+        actualGuruId = (student.halaqahId as any).guruId;
+      }
+
       targetMutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
-        guruId: new mongoose.Types.ObjectId((session.user as any).id),
+        guruId: actualGuruId,
         tanggal: targetDate,
         presensi: { dzikirPagiPetang: false, matanTuhfahJazari: false },
         ziyadah: { hasSetoran: false, talaqqiTakrir: false, binNadzorComplete: false },
