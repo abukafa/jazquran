@@ -36,6 +36,7 @@ export default function ZiyadahPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0],
   );
+  const [isFromRow, setIsFromRow] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -122,6 +123,7 @@ export default function ZiyadahPage() {
     if (!["guru", "admin-tenant"].includes(state.currentRole || "")) return;
     setActiveModal(type);
     setSelectedStudent(item.studentId);
+    setIsFromRow(true);
 
     setFormData({
       tanggal: selectedDate,
@@ -320,12 +322,13 @@ export default function ZiyadahPage() {
         </select>
       )}
 
-      {state.currentRole === "guru" && (
+      {["guru", "admin-tenant"].includes(state.currentRole || "") && (
         <div className="grid grid-cols-3 gap-2.5">
           <button
             onClick={() => {
               setActiveModal("talaqqi");
               setSelectedStudent("");
+              setIsFromRow(false);
               setFormData({
                 tanggal: selectedDate,
                 juz: 30,
@@ -348,6 +351,7 @@ export default function ZiyadahPage() {
             onClick={() => {
               setActiveModal("setoran");
               setSelectedStudent("");
+              setIsFromRow(false);
               setFormData({
                 tanggal: selectedDate,
                 juz: 30,
@@ -370,6 +374,7 @@ export default function ZiyadahPage() {
             onClick={() => {
               setActiveModal("binnadzor");
               setSelectedStudent("");
+              setIsFromRow(false);
               setFormData({
                 tanggal: selectedDate,
                 juz: 30,
@@ -661,7 +666,7 @@ export default function ZiyadahPage() {
                   <label className="block text-xs font-bold text-slate-600 mb-1.5">
                     Santri
                   </label>
-                  {isEditMode ? (
+                  {isFromRow ? (
                     <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 font-medium cursor-not-allowed">
                       {currentStudent?.studentName}
                     </div>
