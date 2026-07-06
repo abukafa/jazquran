@@ -8,14 +8,11 @@ import {
   submitZiyadahData,
   getStudentZiyadahHistory,
 } from "@/actions/ziyadah";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
-import { addToSyncQueue } from "@/lib/localdb";
 import { getPagesInJuz, calculateBinNadzorRange } from "@/lib/mushaf";
 import AlertModal from "@/components/AlertModal";
 
 export default function ZiyadahPage() {
   const { state } = useAppContext();
-  const { isOnline } = useNetworkStatus();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [halaqahs, setHalaqahs] = useState<any[]>([]);
@@ -248,17 +245,10 @@ export default function ZiyadahPage() {
     setActiveModal(null);
     setSelectedStudent("");
 
-    if (isOnline) {
-      const res = await submitZiyadahData(selectedStudent, payload);
-      if (!res.success) {
-        showAlert("Gagal", "Gagal mereset ke server: " + res.error);
-        mutate();
-      }
-    } else {
-      await addToSyncQueue("MutabaahDaily", "update", {
-        studentId: selectedStudent,
-        data: payload,
-      });
+    const res = await submitZiyadahData(selectedStudent, payload);
+    if (!res.success) {
+      showAlert("Gagal", "Gagal mereset ke server: " + res.error);
+      mutate();
     }
   };
 
@@ -288,17 +278,10 @@ export default function ZiyadahPage() {
 
       // We don't need optimistic update for the current view because we are switching views,
       // which will trigger a fresh fetch.
-      if (isOnline) {
-        const res = await submitZiyadahData(selectedStudent, payload);
-        if (!res.success)
-          showAlert("Gagal", "Gagal menyimpan ke server: " + res.error);
-        mutate();
-      } else {
-        await addToSyncQueue("MutabaahDaily", "update", {
-          studentId: selectedStudent,
-          data: payload,
-        });
-      }
+      const res = await submitZiyadahData(selectedStudent, payload);
+      if (!res.success)
+        showAlert("Gagal", "Gagal menyimpan ke server: " + res.error);
+      mutate();
       return;
     }
 
@@ -333,20 +316,10 @@ export default function ZiyadahPage() {
     setActiveModal(null);
     setSelectedStudent("");
 
-    // PWA Offline-First Logic
-    if (isOnline) {
-      const res = await submitZiyadahData(selectedStudent, payload);
-      if (!res.success) {
-        showAlert("Gagal", "Gagal menyimpan ke server: " + res.error);
-        mutate(); // revert
-      }
-    } else {
-      // Offline: Simpan ke IndexedDB
-      await addToSyncQueue("MutabaahDaily", "update", {
-        studentId: selectedStudent,
-        data: payload,
-      });
-      console.log("Disimpan ke IndexedDB untuk sinkronisasi nanti");
+    const res = await submitZiyadahData(selectedStudent, payload);
+    if (!res.success) {
+      showAlert("Gagal", "Gagal menyimpan ke server: " + res.error);
+      mutate(); // revert
     }
   };
 
@@ -356,15 +329,9 @@ export default function ZiyadahPage() {
         <h3 className="text-lg font-extrabold text-slate-800">
           Mutabaah Ziyadah
         </h3>
-        {!isOnline ? (
-          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-            <i className="fa-solid fa-database"></i> Local Storage
-          </span>
-        ) : (
-          <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-            <i className="fa-solid fa-wifi"></i> Server Database
-          </span>
-        )}
+        <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+          <i className="fa-solid fa-wifi"></i> Online Sync
+        </span>
       </div>
 
       {["guru", "admin-tenant"].includes(state.currentRole || "") && (

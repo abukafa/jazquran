@@ -366,11 +366,14 @@ export async function resetMurojaahTatsbitData(studentId: string, dateStr: strin
       return { success: false, error: "Akses ditolak" };
     }
 
-    const targetDate = getStartOfDayUTC(new Date(dateStr));
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0, 0, 0, 0);
+    const targetNextDay = new Date(targetDate);
+    targetNextDay.setDate(targetNextDay.getDate() + 1);
 
     const mutabaah = await MutabaahDaily.findOne({
       studentId: new mongoose.Types.ObjectId(studentId),
-      tanggal: targetDate,
+      tanggal: { $gte: targetDate, $lt: targetNextDay },
     });
 
     if (mutabaah) {

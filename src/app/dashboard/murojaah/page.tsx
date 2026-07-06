@@ -10,14 +10,11 @@ import {
   getMuridMurojaahData,
   resetMurojaahTatsbitData,
 } from "@/actions/murojaah";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
-import { addToSyncQueue } from "@/lib/localdb";
 import { getPagesInJuz, calculateBinNadzorRange } from "@/lib/mushaf";
 import AlertModal from "@/components/AlertModal";
 
 export default function MurojaahPage() {
   const { state } = useAppContext();
-  const { isOnline } = useNetworkStatus();
 
   const [halaqahs, setHalaqahs] = useState<any[]>([]);
   const [selectedHalaqah, setSelectedHalaqah] = useState<string>("");
@@ -224,20 +221,16 @@ export default function MurojaahPage() {
           false,
         );
 
-        if (isOnline) {
-          try {
-            const res = await resetMurojaahTatsbitData(studentId, itemDate);
-            if (!res.success) {
-              showAlert("Gagal", "Gagal mereset data: " + res.error);
-              mutate(); // rollback
-            }
-          } catch (error) {
-            console.error(error);
-            showAlert("Error", "Gagal menghubungi server");
-            mutate();
+        try {
+          const res = await resetMurojaahTatsbitData(studentId, itemDate);
+          if (!res.success) {
+            showAlert("Gagal", "Gagal mereset data: " + res.error);
+            mutate(); // rollback
           }
-        } else {
-          // add to sync queue if offline (optional/todo)
+        } catch (error) {
+          console.error(error);
+          showAlert("Error", "Gagal menghubungi server");
+          mutate();
         }
       },
     });
@@ -267,27 +260,18 @@ export default function MurojaahPage() {
           },
         };
 
-        if (isOnline) {
-          const res = await submitMurojaahPartnerData(
-            payload.studentId,
-            payload.dateStr,
-            payload.murojaahData,
-            payload.originalDateStr,
+        const res = await submitMurojaahPartnerData(
+          payload.studentId,
+          payload.dateStr,
+          payload.murojaahData,
+          payload.originalDateStr,
+        );
+        if (res.success) result = true;
+        else
+          showAlert(
+            "Gagal Menyimpan",
+            "Gagal menyimpan data partner: " + (res as any).error,
           );
-          if (res.success) result = true;
-          else
-            showAlert(
-              "Gagal Menyimpan",
-              "Gagal menyimpan data partner: " + (res as any).error,
-            );
-        } else {
-          await addToSyncQueue(
-            "MutabaahDaily_MurojaahPartner",
-            "update",
-            payload,
-          );
-          result = true;
-        }
       } else if (activeModal === "tatsbit") {
         const payload = {
           studentId: selectedStudent,
@@ -307,23 +291,18 @@ export default function MurojaahPage() {
           },
         };
 
-        if (isOnline) {
-          const res = await submitTatsbitData(
-            payload.studentId,
-            payload.dateStr,
-            payload.tatsbitData,
-            payload.originalDateStr,
+        const res = await submitTatsbitData(
+          payload.studentId,
+          payload.dateStr,
+          payload.tatsbitData,
+          payload.originalDateStr,
+        );
+        if (res.success) result = true;
+        else
+          showAlert(
+            "Gagal Menyimpan",
+            "Gagal menyimpan data tatsbit: " + (res as any).error,
           );
-          if (res.success) result = true;
-          else
-            showAlert(
-              "Gagal Menyimpan",
-              "Gagal menyimpan data tatsbit: " + (res as any).error,
-            );
-        } else {
-          await addToSyncQueue("MutabaahDaily_Tatsbit", "update", payload);
-          result = true;
-        }
       }
 
       if (result) {
