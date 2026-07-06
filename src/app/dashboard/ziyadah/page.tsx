@@ -34,12 +34,12 @@ export default function ZiyadahPage() {
   >(null);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0],
+    new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0],
   );
 
   // Form state
   const [formData, setFormData] = useState({
-    tanggal: new Date().toISOString().split("T")[0],
+    tanggal: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0],
     juz: 30,
     halamanDari: "1a",
     halamanKe: "1a",
@@ -119,7 +119,7 @@ export default function ZiyadahPage() {
       return;
     }
     
-    if (state.currentRole !== "guru") return;
+    if (!["guru", "admin-tenant"].includes(state.currentRole || "")) return;
     setActiveModal(type);
     setSelectedStudent(item.studentId);
 
@@ -164,6 +164,7 @@ export default function ZiyadahPage() {
       type: activeModal,
       isReset: true,
       tanggal: formData.tanggal,
+      originalDateStr: selectedDate || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0],
     };
 
     setStudentsData((prev) =>
@@ -220,6 +221,7 @@ export default function ZiyadahPage() {
 
     const payload = {
       type: activeModal,
+      originalDateStr: selectedDate || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0],
       ...formData,
     };
 
@@ -440,7 +442,7 @@ export default function ZiyadahPage() {
                       {item.studentName}
                     </td>
                     <td
-                      className={`px-4 py-3 text-center ${state.currentRole === "guru" ? "cursor-pointer hover:bg-slate-100" : ""}`}
+                      className={`px-4 py-3 text-center ${["guru", "admin-tenant"].includes(state.currentRole || "") ? "cursor-pointer hover:bg-slate-100" : ""}`}
                       onClick={() => openEditModal("talaqqi", item)}
                     >
                       {item.talaqqiCount > 0 ? (
@@ -458,7 +460,7 @@ export default function ZiyadahPage() {
                       )}
                     </td>
                     <td
-                      className={`px-4 py-3 ${state.currentRole === "guru" ? "cursor-pointer hover:bg-slate-100" : ""}`}
+                      className={`px-4 py-3 ${["guru", "admin-tenant"].includes(state.currentRole || "") ? "cursor-pointer hover:bg-slate-100" : ""}`}
                       onClick={() => openEditModal("setoran", item)}
                     >
                       {item.hasSetoran ? (
@@ -470,7 +472,7 @@ export default function ZiyadahPage() {
                       )}
                     </td>
                     <td
-                      className={`px-4 py-3 text-center ${state.currentRole === "guru" ? "cursor-pointer hover:bg-slate-100" : ""}`}
+                      className={`px-4 py-3 text-center ${["guru", "admin-tenant"].includes(state.currentRole || "") ? "cursor-pointer hover:bg-slate-100" : ""}`}
                       onClick={() => openEditModal("binnadzor", item)}
                     >
                       {item.binNadzorComplete ? (
@@ -629,48 +631,63 @@ export default function ZiyadahPage() {
                 <i className="fa-solid fa-xmark text-lg"></i>
               </button>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {(() => {
+              const currentStudent = studentsData.find(s => s.studentId === selectedStudent);
+              const isEditMode = activeModal === "setoran" ? currentStudent?.hasSetoran 
+                               : activeModal === "talaqqi" ? (currentStudent?.talaqqiCount || 0) > 0 
+                               : activeModal === "binnadzor" ? currentStudent?.binNadzorComplete 
+                               : false;
+              
+              return (
+                <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-slate-600 mb-1.5">
-                    Tanggal
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.tanggal}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tanggal: e.target.value })
-                    }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sage-400"
-                  />
-                </div>
+                {state.currentRole === "admin-tenant" && (
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                      Tanggal
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.tanggal}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tanggal: e.target.value })
+                      }
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sage-400"
+                    />
+                  </div>
+                )}
                 <div className="flex-[2]">
                   <label className="block text-xs font-bold text-slate-600 mb-1.5">
                     Santri
                   </label>
-                  <select
-                    required
-                    value={selectedStudent}
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      const student = studentsData.find(
-                        (s) => s.studentId === id,
-                      );
-                      if (student) openEditModal(activeModal as any, student);
-                    }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sage-400"
-                  >
-                    <option value="" disabled>
-                      -- Pilih Santri --
-                    </option>
-                    {studentsData.map((s) => (
-                      <option key={s.studentId} value={s.studentId}>
-                        {s.studentName}
-                      </option>
-                    ))}
-                  </select>
+                  {isEditMode ? (
+                    <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 font-medium cursor-not-allowed">
+                      {currentStudent?.studentName}
+                    </div>
+                  ) : (
+                      <select
+                        required
+                        value={selectedStudent}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          const student = studentsData.find(
+                            (s) => s.studentId === id,
+                          );
+                          if (student) openEditModal(activeModal as any, student);
+                        }}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sage-400"
+                      >
+                        <option value="" disabled>
+                          -- Pilih Santri --
+                        </option>
+                        {studentsData.map((s) => (
+                          <option key={s.studentId} value={s.studentId}>
+                            {s.studentName}
+                          </option>
+                        ))}
+                      </select>
+                  )}
                 </div>
               </div>
 
@@ -830,10 +847,12 @@ export default function ZiyadahPage() {
                   }
                   className="flex-1 bg-sage-500 hover:bg-sage-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl text-sm transition"
                 >
-                  Simpan Data
+                  {isEditMode ? "Simpan Perubahan" : "Simpan Data"}
                 </button>
               </div>
             </form>
+            );
+          })()}
           </div>
         </div>
       )}

@@ -89,7 +89,8 @@ export async function submitMurojaahPartnerData(
     juz: number;
     halamanDari: string;
     halamanKe: string;
-  }
+  },
+  originalDateStr?: string
 ) {
   try {
     await dbConnect();
@@ -116,11 +117,11 @@ export async function submitMurojaahPartnerData(
       if (student.partnerId?.toString() !== currentUserStudent._id.toString()) {
         return { success: false, error: "Hanya partner hafalan yang berhak menginput data ini" };
       }
-    } else if (role !== "guru") {
-      return { success: false, error: "Hanya Guru dan Partner yang bisa menginput Murojaah" };
+    } else if (!["guru", "admin-tenant"].includes(role)) {
+      return { success: false, error: "Hanya Guru, Admin Tenant, dan Partner yang bisa menginput Murojaah" };
     }
 
-    const queryDate = new Date(dateStr);
+    const queryDate = new Date(originalDateStr || dateStr);
     queryDate.setHours(0, 0, 0, 0);
     const nextDay = new Date(queryDate);
     nextDay.setDate(nextDay.getDate() + 1);
@@ -131,12 +132,19 @@ export async function submitMurojaahPartnerData(
     });
 
     if (!mutabaah) {
+      const newTargetDate = new Date(dateStr);
+      newTargetDate.setHours(0, 0, 0, 0);
       mutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
         guruId: role === "guru" ? userId : (student as any).halaqahId, // Guru ID fallback kalau murid yg submit
-        tanggal: queryDate,
+        tanggal: newTargetDate,
       });
+    } else if (originalDateStr && originalDateStr !== dateStr) {
+      // Jika user mengubah tanggal di modal edit
+      const newTargetDate = new Date(dateStr);
+      newTargetDate.setHours(0, 0, 0, 0);
+      mutabaah.tanggal = newTargetDate;
     }
 
     mutabaah.murojaahPartner = {
@@ -161,19 +169,23 @@ export async function submitTatsbitData(
     halamanDari: string;
     halamanKe: string;
     nilai: string;
-  }
+  },
+  originalDateStr?: string
 ) {
   try {
     await dbConnect();
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== "guru") {
-      return { success: false, error: "Hanya Guru yang dapat mengisi Tatsbit" };
+    
+    const role = session?.user ? (session.user as any).role : null;
+    if (!session || !["guru", "admin-tenant"].includes(role)) {
+      return { success: false, error: "Hanya Guru dan Admin Tenant yang dapat mengisi Tatsbit" };
     }
 
+    const userId = (session.user as any).id;
     const student = await Student.findById(studentId);
     if (!student) return { success: false, error: "Murid tidak ditemukan" };
 
-    const queryDate = new Date(dateStr);
+    const queryDate = new Date(originalDateStr || dateStr);
     queryDate.setHours(0, 0, 0, 0);
     const nextDay = new Date(queryDate);
     nextDay.setDate(nextDay.getDate() + 1);
@@ -184,12 +196,19 @@ export async function submitTatsbitData(
     });
 
     if (!mutabaah) {
+      const newTargetDate = new Date(dateStr);
+      newTargetDate.setHours(0, 0, 0, 0);
       mutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
-        guruId: (session.user as any).id,
-        tanggal: queryDate,
+        guruId: userId,
+        tanggal: newTargetDate,
       });
+    } else if (originalDateStr && originalDateStr !== dateStr) {
+      // Jika user mengubah tanggal di modal edit
+      const newTargetDate = new Date(dateStr);
+      newTargetDate.setHours(0, 0, 0, 0);
+      mutabaah.tanggal = newTargetDate;
     }
 
     mutabaah.tatsbit = {
@@ -270,6 +289,38 @@ export async function getMuridMurojaahData(dateStr: string) {
       myHistory: formattedHistory,
       partnerData
     };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function resetMurojaahTatsbitData(studentId: string, dateStr: string) {
+  try {
+    await dbConnect();
+    const session = await getServerSession(authOptions);
+    const role = session?.user ? (session.user as any).role : null;
+    
+    if (!session || !["guru", "admin-tenant"].includes(role)) {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    const queryDate = new Date(dateStr);
+    queryDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(queryDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const mutabaah = await MutabaahDaily.findOne({
+      studentId: new mongoose.Types.ObjectId(studentId),
+      tanggal: { $gte: queryDate, $lt: nextDay },
+    });
+
+    if (mutabaah) {
+      mutabaah.murojaahPartner = { isCompleted: false };
+      mutabaah.tatsbit = { isCompleted: false };
+      await mutabaah.save();
+    }
+
+    return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

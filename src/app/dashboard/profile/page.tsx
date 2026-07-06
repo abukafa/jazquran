@@ -245,7 +245,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center">
+        <div className="hidden bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center">
           <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
             <i className="fa-solid fa-heart"></i>
           </div>
@@ -262,7 +262,7 @@ export default function ProfilePage() {
             rel="noopener noreferrer"
             className="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-xl text-xs flex justify-center items-center gap-2 transition"
           >
-            <i className="fa-solid fa-mug-hot"></i> Traktir Cendol
+            <i className="fa-solid fa-mug-hot"></i> Traktir
           </a>
         </div>
       </div>

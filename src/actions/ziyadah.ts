@@ -92,11 +92,11 @@ export async function submitZiyadahData(studentId: string, data: any) {
     await dbConnect();
     const session = await getServerSession(authOptions);
     
-    if (!session || !(session.user as any) || (session.user as any).role !== "guru") {
+    if (!session || !(session.user as any) || !["guru", "admin-tenant"].includes((session.user as any).role)) {
       return { success: false, error: "Akses ditolak" };
     }
 
-    const queryDate = new Date(data.tanggal);
+    const queryDate = new Date(data.originalDateStr || data.tanggal);
     queryDate.setHours(0, 0, 0, 0);
     const nextDay = new Date(queryDate);
     nextDay.setDate(nextDay.getDate() + 1);
@@ -111,17 +111,24 @@ export async function submitZiyadahData(studentId: string, data: any) {
     if (!student) return { success: false, error: "Murid tidak ditemukan" };
 
     if (!mutabaah) {
+      const newTargetDate = new Date(data.tanggal);
+      newTargetDate.setHours(0, 0, 0, 0);
       // Buat baru jika belum ada
       mutabaah = new MutabaahDaily({
         tenantId: student.tenantId,
         studentId: student._id,
         guruId: new mongoose.Types.ObjectId((session.user as any).id),
-        tanggal: queryDate,
+        tanggal: newTargetDate,
         presensi: { dzikirPagiPetang: false, matanTuhfahJazari: false },
         ziyadah: { hasSetoran: false, talaqqiTakrir: false, binNadzorComplete: false },
         murojaahPartner: { isCompleted: false },
         tatsbit: { isCompleted: false }
       });
+    } else if (data.originalDateStr && data.originalDateStr !== data.tanggal) {
+      // Jika user mengubah tanggal di modal edit
+      const newTargetDate = new Date(data.tanggal);
+      newTargetDate.setHours(0, 0, 0, 0);
+      mutabaah.tanggal = newTargetDate;
     }
 
     // Update field ziyadah berdasarkan input
