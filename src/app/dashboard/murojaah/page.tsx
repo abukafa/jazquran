@@ -208,10 +208,14 @@ export default function MurojaahPage() {
               s._id === studentId
                 ? {
                     ...s,
-                    hasTatsbit: false,
+                    murojaahPartnerComplete: false,
+                    murojaahPartnerJuz: null,
+                    murojaahPartnerDari: null,
+                    murojaahPartnerKe: null,
+                    tatsbitComplete: false,
                     tatsbitJuz: null,
-                    tatsbitHalamanDari: null,
-                    tatsbitHalamanKe: null,
+                    tatsbitDari: null,
+                    tatsbitKe: null,
                     tatsbitNilai: null,
                   }
                 : s,
