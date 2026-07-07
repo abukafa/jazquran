@@ -164,12 +164,17 @@ export default function ZiyadahPage() {
     setSelectedStudent(item.studentId);
     setIsFromRow(true);
 
+    const defaultJuz = item.juz || item.lastZiyadahJuz || 30;
+    const defaultHalDari = item.halamanDari || item.lastZiyadahHalamanDari || "1a";
+    const defaultHalKe = item.halamanKe || item.lastZiyadahHalamanKe || "1a";
+    const defaultNilai = item.nilaiKelancaran || item.lastZiyadahNilai || "A";
+
     setFormData({
       tanggal: selectedDate,
-      juz: item.juz || 30,
-      halamanDari: item.halamanDari || "1a",
-      halamanKe: item.halamanKe || "1a",
-      nilaiKelancaran: item.nilaiKelancaran || "A",
+      juz: defaultJuz,
+      halamanDari: defaultHalDari,
+      halamanKe: defaultHalKe,
+      nilaiKelancaran: defaultNilai,
       talaqqiCount: item.talaqqiCount || 0,
     });
 

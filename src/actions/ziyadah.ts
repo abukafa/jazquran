@@ -60,11 +60,39 @@ export async function getZiyadahByDate(halaqahId: string | undefined, dateStr: s
       tanggal: { $gte: queryDate, $lt: nextDay },
     }).lean();
 
+    // Dapatkan data ziyadah terakhir sebelum atau pada tanggal tersebut
+    // untuk pre-fill form
+    const lastZiyadahs = await MutabaahDaily.aggregate([
+      {
+        $match: {
+          studentId: { $in: studentIds },
+          "ziyadah.hasSetoran": true,
+          tanggal: { $lt: nextDay }
+        }
+      },
+      { $sort: { tanggal: -1 } },
+      {
+        $group: {
+          _id: "$studentId",
+          juz: { $first: "$ziyadah.juz" },
+          halamanDari: { $first: "$ziyadah.halamanDari" },
+          halamanKe: { $first: "$ziyadah.halamanKe" },
+          nilaiKelancaran: { $first: "$ziyadah.nilaiKelancaran" }
+        }
+      }
+    ]);
+
+    const lastZiyadahMap = new Map();
+    lastZiyadahs.forEach((lz: any) => {
+      lastZiyadahMap.set(lz._id.toString(), lz);
+    });
+
     // 3. Gabungkan data
     const combinedData = students.map((student: any) => {
       const log: any = mutabaahLogs.find(
         (m: any) => m.studentId.toString() === student._id.toString()
       );
+      const lastZ = lastZiyadahMap.get(student._id.toString());
 
       return {
         studentId: student._id.toString(),
@@ -81,6 +109,10 @@ export async function getZiyadahByDate(halaqahId: string | undefined, dateStr: s
         binNadzorHalamanDari: log?.ziyadah?.binNadzorHalamanDari || null,
         binNadzorHalamanKe: log?.ziyadah?.binNadzorHalamanKe || null,
         murojaahPartnerComplete: log?.murojaahPartner?.isCompleted || false,
+        lastZiyadahJuz: lastZ?.juz || null,
+        lastZiyadahHalamanDari: lastZ?.halamanDari || null,
+        lastZiyadahHalamanKe: lastZ?.halamanKe || null,
+        lastZiyadahNilai: lastZ?.nilaiKelancaran || null,
       };
     });
 

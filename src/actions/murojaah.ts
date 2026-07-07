@@ -77,6 +77,10 @@ export async function getMurojaahByDate(halaqahId: string | undefined, dateStr: 
         tatsbitDari: log?.tatsbit?.halamanDari || null,
         tatsbitKe: log?.tatsbit?.halamanKe || null,
         tatsbitNilai: log?.tatsbit?.nilai || null,
+        // Ziyadah (untuk auto-fill Tatsbit)
+        ziyadahHasSetoran: log?.ziyadah?.hasSetoran || false,
+        ziyadahJuz: log?.ziyadah?.juz || null,
+        ziyadahHalamanKe: log?.ziyadah?.halamanKe || null,
       };
     });
 

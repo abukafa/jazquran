@@ -182,9 +182,16 @@ export default function MurojaahPage() {
         tatsbitHalKe: item.tatsbitKe || "",
         tatsbitNilai: item.tatsbitNilai || "A",
       }));
-    } else if (type === "tatsbit") {
-      // Auto-calculate Tatsbit based on Ziyadah info if available (similar to BinNadzor)
-      // Karena kita butuh halaman terakhir, jika tidak ada di state ini, kita tinggalkan kosong agar diedit manual
+    } else if (type === "tatsbit" && item.ziyadahHasSetoran && item.ziyadahJuz && item.ziyadahHalamanKe) {
+      const range = calculateBinNadzorRange(item.ziyadahJuz, item.ziyadahHalamanKe);
+      if (range) {
+        setFormData((prev) => ({
+          ...prev,
+          tatsbitJuz: range.juzDari.toString(),
+          tatsbitHalDari: range.halDari,
+          tatsbitHalKe: range.halKe,
+        }));
+      }
     }
   };
 
@@ -487,7 +494,6 @@ export default function MurojaahPage() {
                     >
                       {item.murojaahPartnerComplete ? (
                         <span className="font-medium text-slate-700 whitespace-nowrap">
-                          <i className="fa-solid fa-check-circle text-emerald-500 mr-1"></i>
                           {item.murojaahPartnerJuz}, {item.murojaahPartnerDari}-
                           {item.murojaahPartnerKe}
                         </span>
@@ -510,10 +516,6 @@ export default function MurojaahPage() {
                     >
                       {item.tatsbitComplete ? (
                         <div className="flex flex-col items-center gap-1">
-                          <span className="font-medium text-blue-700 whitespace-nowrap">
-                            {item.tatsbitJuz}, {item.tatsbitDari}-
-                            {item.tatsbitKe}
-                          </span>
                           <span
                             className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white ${
                               item.tatsbitNilai.startsWith("A")
@@ -523,7 +525,8 @@ export default function MurojaahPage() {
                                   : "bg-amber-500"
                             }`}
                           >
-                            {item.tatsbitNilai}
+                            {item.tatsbitJuz}, {item.tatsbitDari}-
+                            {item.tatsbitKe}
                           </span>
                         </div>
                       ) : (
@@ -632,52 +635,70 @@ export default function MurojaahPage() {
                   }
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-2">
-                    Halaman Dari
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Misal: 10a"
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-sage-500 transition text-sm font-bold text-slate-700"
-                    value={
-                      activeModal === "partner"
-                        ? formData.partnerHalDari
-                        : formData.tatsbitHalDari
-                    }
-                    onChange={(e) =>
-                      setFormData((prev) =>
-                        activeModal === "partner"
-                          ? { ...prev, partnerHalDari: e.target.value }
-                          : { ...prev, tatsbitHalDari: e.target.value },
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-2">
-                    Halaman Ke
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Misal: 15b"
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-sage-500 transition text-sm font-bold text-slate-700"
-                    value={
-                      activeModal === "partner"
-                        ? formData.partnerHalKe
-                        : formData.tatsbitHalKe
-                    }
-                    onChange={(e) =>
-                      setFormData((prev) =>
-                        activeModal === "partner"
-                          ? { ...prev, partnerHalKe: e.target.value }
-                          : { ...prev, tatsbitHalKe: e.target.value },
-                      )
-                    }
-                  />
-                </div>
-              </div>
+              {(() => {
+                const currentJuz = activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz;
+                const pagesCount = currentJuz ? getPagesInJuz(parseInt(currentJuz as string) || 0) : 0;
+                const pageOptions = Array.from({ length: pagesCount }).flatMap((_, i) => [
+                  `${i + 1}a`,
+                  `${i + 1}b`,
+                ]);
+                return (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-2">
+                        Halaman Dari
+                      </label>
+                      <select
+                        required
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-sage-500 transition text-sm font-bold text-slate-700"
+                        value={
+                          activeModal === "partner"
+                            ? formData.partnerHalDari
+                            : formData.tatsbitHalDari
+                        }
+                        onChange={(e) =>
+                          setFormData((prev) =>
+                            activeModal === "partner"
+                              ? { ...prev, partnerHalDari: e.target.value }
+                              : { ...prev, tatsbitHalDari: e.target.value },
+                          )
+                        }
+                      >
+                        <option value="" disabled>-- Pilih --</option>
+                        {pageOptions.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-2">
+                        Halaman Ke
+                      </label>
+                      <select
+                        required
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-sage-500 transition text-sm font-bold text-slate-700"
+                        value={
+                          activeModal === "partner"
+                            ? formData.partnerHalKe
+                            : formData.tatsbitHalKe
+                        }
+                        onChange={(e) =>
+                          setFormData((prev) =>
+                            activeModal === "partner"
+                              ? { ...prev, partnerHalKe: e.target.value }
+                              : { ...prev, tatsbitHalKe: e.target.value },
+                          )
+                        }
+                      >
+                        <option value="" disabled>-- Pilih --</option>
+                        {pageOptions.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {activeModal === "tatsbit" && (
                 <div>
