@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { useAppContext } from "@/context/AppContext";
 import AlertModal from "@/components/AlertModal";
 
@@ -73,8 +74,8 @@ export default function DashboardHome() {
         </button>
 
         {/* Card 2: Quotes Qurani */}
-        <button 
-          onClick={() => handleUpcomingFeature("Quotes Qurani")}
+        <Link 
+          href="/dashboard/quotes"
           className="relative overflow-hidden group bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-3xl border border-blue-200 shadow-sm flex flex-col items-center justify-center space-y-3 hover:shadow-md hover:-translate-y-1 transition duration-300"
         >
           {/* Texture Motif */}
@@ -94,11 +95,11 @@ export default function DashboardHome() {
             <i className="fas fa-quote-right text-xl"></i>
           </div>
           <span className="relative z-10 font-bold text-blue-800 text-sm text-center tracking-wide">Quotes<br/>Qurani</span>
-        </button>
+        </Link>
 
         {/* Card 3: Prayer Time */}
-        <button 
-          onClick={() => handleUpcomingFeature("Prayer Time")}
+        <Link 
+          href="/dashboard/prayer-time"
           className="relative overflow-hidden group bg-gradient-to-br from-amber-50 to-amber-100 p-5 rounded-3xl border border-amber-200 shadow-sm flex flex-col items-center justify-center space-y-3 hover:shadow-md hover:-translate-y-1 transition duration-300"
         >
           {/* Texture Motif */}
@@ -118,11 +119,11 @@ export default function DashboardHome() {
             <i className="fas fa-clock text-xl"></i>
           </div>
           <span className="relative z-10 font-bold text-amber-800 text-sm text-center tracking-wide">Prayer<br/>Time</span>
-        </button>
+        </Link>
 
         {/* Card 4: Qibla Direction */}
-        <button 
-          onClick={() => handleUpcomingFeature("Qibla Direction")}
+        <Link 
+          href="/dashboard/qibla-direction"
           className="relative overflow-hidden group bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 rounded-3xl border border-emerald-200 shadow-sm flex flex-col items-center justify-center space-y-3 hover:shadow-md hover:-translate-y-1 transition duration-300"
         >
           {/* Texture Motif */}
@@ -142,7 +143,7 @@ export default function DashboardHome() {
             <i className="fas fa-compass text-xl"></i>
           </div>
           <span className="relative z-10 font-bold text-emerald-800 text-sm text-center tracking-wide">Qibla<br/>Direction</span>
-        </button>
+        </Link>
       </div>
 
       <AlertModal
