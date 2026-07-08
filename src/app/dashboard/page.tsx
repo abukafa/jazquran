@@ -50,10 +50,19 @@ export default function DashboardHome() {
       <div className="grid grid-cols-2 gap-4">
         {/* Card 1: Mushaf Madinah */}
         <button 
-          onClick={() => handleUpcomingFeature("Mushaf Madinah")}
+          onClick={() => window.open('/mushaf?start=1&end=604', 'MushafWindow', 'width=600,height=800')}
           className="relative overflow-hidden group bg-gradient-to-br from-sage-50 to-sage-100 p-5 rounded-3xl border border-sage-200 shadow-sm flex flex-col items-center justify-center space-y-3 hover:shadow-md hover:-translate-y-1 transition duration-300"
         >
-          {/* Decorative motif */}
+          {/* Texture Motif */}
+          <svg className="absolute inset-0 w-full h-full text-sage-900 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="motif-sage" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M16 0l2 14 14 2-14 2-2 14-2-14-14-2 14-2z" fill="currentColor" fillOpacity="0.04" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#motif-sage)"></rect>
+          </svg>
+          {/* Decorative glow */}
           <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-sage-200/40 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
           <div className="absolute bottom-0 left-0 -ml-4 -mb-4 w-12 h-12 bg-sage-200/50 rounded-full blur-lg group-hover:scale-150 transition-transform duration-500 delay-75"></div>
           
@@ -68,6 +77,16 @@ export default function DashboardHome() {
           onClick={() => handleUpcomingFeature("Quotes Qurani")}
           className="relative overflow-hidden group bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-3xl border border-blue-200 shadow-sm flex flex-col items-center justify-center space-y-3 hover:shadow-md hover:-translate-y-1 transition duration-300"
         >
+          {/* Texture Motif */}
+          <svg className="absolute inset-0 w-full h-full text-blue-900 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="motif-blue" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M16 0l2 14 14 2-14 2-2 14-2-14-14-2 14-2z" fill="currentColor" fillOpacity="0.04" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#motif-blue)"></rect>
+          </svg>
+          {/* Decorative glow */}
           <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-blue-200/40 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
           <div className="absolute bottom-0 left-0 -ml-4 -mb-4 w-12 h-12 bg-blue-200/50 rounded-full blur-lg group-hover:scale-150 transition-transform duration-500 delay-75"></div>
           
@@ -82,6 +101,16 @@ export default function DashboardHome() {
           onClick={() => handleUpcomingFeature("Prayer Time")}
           className="relative overflow-hidden group bg-gradient-to-br from-amber-50 to-amber-100 p-5 rounded-3xl border border-amber-200 shadow-sm flex flex-col items-center justify-center space-y-3 hover:shadow-md hover:-translate-y-1 transition duration-300"
         >
+          {/* Texture Motif */}
+          <svg className="absolute inset-0 w-full h-full text-amber-900 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="motif-amber" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M16 0l2 14 14 2-14 2-2 14-2-14-14-2 14-2z" fill="currentColor" fillOpacity="0.04" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#motif-amber)"></rect>
+          </svg>
+          {/* Decorative glow */}
           <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-amber-200/40 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
           <div className="absolute bottom-0 left-0 -ml-4 -mb-4 w-12 h-12 bg-amber-200/50 rounded-full blur-lg group-hover:scale-150 transition-transform duration-500 delay-75"></div>
           
@@ -96,6 +125,16 @@ export default function DashboardHome() {
           onClick={() => handleUpcomingFeature("Qibla Direction")}
           className="relative overflow-hidden group bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 rounded-3xl border border-emerald-200 shadow-sm flex flex-col items-center justify-center space-y-3 hover:shadow-md hover:-translate-y-1 transition duration-300"
         >
+          {/* Texture Motif */}
+          <svg className="absolute inset-0 w-full h-full text-emerald-900 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="motif-emerald" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M16 0l2 14 14 2-14 2-2 14-2-14-14-2 14-2z" fill="currentColor" fillOpacity="0.04" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#motif-emerald)"></rect>
+          </svg>
+          {/* Decorative glow */}
           <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-emerald-200/40 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
           <div className="absolute bottom-0 left-0 -ml-4 -mb-4 w-12 h-12 bg-emerald-200/50 rounded-full blur-lg group-hover:scale-150 transition-transform duration-500 delay-75"></div>
           

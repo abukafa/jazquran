@@ -1,4 +1,4 @@
-// Peta halaman awal setiap Juz pada Mushaf Madinah standar (604 halaman)
+﻿// Peta halaman awal setiap Juz pada Mushaf Madinah standar (604 halaman)
 // Index 1 adalah Juz 1, Index 30 adalah Juz 30
 export const JUZ_START_PAGES = [
   0, 
@@ -74,3 +74,24 @@ export function calculateBinNadzorRange(
     halKe: ke.stringFormat,
   };
 }
+
+// Konversi (Juz, format lokal misal "1a" atau "2b") menjadi Halaman Global Mushaf (1 s/d 604)
+// Sangat berguna untuk integrasi dengan API Quran (seperti api.quran.com)
+export function toGlobalPage(juz: number, stringHal: string | number): number {
+  if (!stringHal) return JUZ_START_PAGES[juz] || 1;
+  let halStr = String(stringHal).trim();
+  
+  // Format legacy atau hanya angka: asumsikan "a"
+  if (!halStr.endsWith('a') && !halStr.endsWith('b')) {
+    halStr += 'a';
+  }
+  
+  const match = halStr.match(/^(\d+)([ab])$/);
+  if (!match) return JUZ_START_PAGES[juz] || 1;
+  
+  const halRelatif = parseInt(match[1], 10);
+  
+  // Halaman absolut = Halaman awal Juz + halaman relatif - 1
+  return JUZ_START_PAGES[juz] + halRelatif - 1;
+}
+

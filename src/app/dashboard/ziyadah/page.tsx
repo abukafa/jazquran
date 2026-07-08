@@ -8,7 +8,7 @@ import {
   submitZiyadahData,
   getStudentZiyadahHistory,
 } from "@/actions/ziyadah";
-import { getPagesInJuz, calculateBinNadzorRange } from "@/lib/mushaf";
+import { getPagesInJuz, calculateBinNadzorRange, toGlobalPage } from "@/lib/mushaf";
 import AlertModal from "@/components/AlertModal";
 
 export default function ZiyadahPage() {
@@ -815,6 +815,19 @@ export default function ZiyadahPage() {
                             ))}
                           </select>
                         </div>
+                      </div>
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const start = toGlobalPage(formData.juz, formData.halamanDari);
+                            const end = toGlobalPage(formData.juz, formData.halamanKe);
+                            window.open(`/mushaf?start=${start}&end=${end}`, 'MushafWindow', 'width=600,height=800');
+                          }}
+                          className="w-full flex items-center justify-center gap-2 bg-sage-50 text-sage-700 py-2 rounded-xl text-sm font-bold border border-sage-200 hover:bg-sage-100 transition"
+                        >
+                          <i className="fa-solid fa-book-open"></i> Buka Mushaf (Hal {toGlobalPage(formData.juz, formData.halamanDari)} - {toGlobalPage(formData.juz, formData.halamanKe)})
+                        </button>
                       </div>
                       {activeModal === "setoran" && (
                         <div>
