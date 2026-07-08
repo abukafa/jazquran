@@ -10,7 +10,7 @@ import {
   getMuridMurojaahData,
   resetMurojaahTatsbitData,
 } from "@/actions/murojaah";
-import { getPagesInJuz, calculateBinNadzorRange } from "@/lib/mushaf";
+import { getPagesInJuz, calculateBinNadzorRange, toGlobalPage } from "@/lib/mushaf";
 import AlertModal from "@/components/AlertModal";
 
 export default function MurojaahPage() {
@@ -699,6 +699,26 @@ export default function MurojaahPage() {
                   </div>
                 );
               })()}
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentJuz = activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz;
+                    const dari = activeModal === "partner" ? formData.partnerHalDari : formData.tatsbitHalDari;
+                    const ke = activeModal === "partner" ? formData.partnerHalKe : formData.tatsbitHalKe;
+                    const start = toGlobalPage(Number(currentJuz), dari);
+                    const end = toGlobalPage(Number(currentJuz), ke);
+                    window.open(`/mushaf?start=${start}&end=${end}`, 'MushafWindow', 'width=600,height=800');
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-sage-50 text-sage-700 py-2 rounded-xl text-sm font-bold border border-sage-200 hover:bg-sage-100 transition"
+                >
+                  <i className="fa-solid fa-book-open"></i> Buka Mushaf (Hal {
+                    toGlobalPage(Number(activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz), activeModal === "partner" ? formData.partnerHalDari : formData.tatsbitHalDari)
+                  } - {
+                    toGlobalPage(Number(activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz), activeModal === "partner" ? formData.partnerHalKe : formData.tatsbitHalKe)
+                  })
+                </button>
+              </div>
 
               {activeModal === "tatsbit" && (
                 <div>
