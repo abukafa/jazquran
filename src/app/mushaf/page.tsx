@@ -89,19 +89,6 @@ function MushafViewer() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEndHandler}
     >
-      {/* Sticky Header Navigasi */}
-      <div className="bg-[#F4F3ED]/90 backdrop-blur-md border-b border-[#D4C3A3] z-50 p-3 shadow-sm flex justify-between items-center px-4 md:px-10 shrink-0">
-        <button
-          onClick={() => window.close()}
-          className="text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2"
-        >
-          <i className="fas fa-times"></i> Tutup
-        </button>
-        <h1 className="font-bold text-sage-800 text-sm md:text-base mr-1">
-          {currentPage}
-        </h1>
-      </div>
-
       {/* Main Content Area */}
       <div className="flex-1 relative flex items-center justify-center max-w-4xl mx-auto w-full h-[calc(100vh-64px)] overflow-hidden bg-white shadow-xl">
         {/* Edge Nav - Prev (Kanan) - Because RTL, previous page is to the right */}
