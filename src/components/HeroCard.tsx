@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 
 export default function HeroCard() {
   const pathname = usePathname();
-  if (pathname === "/dashboard/prayer-time" || pathname === "/dashboard/qibla-direction" || pathname === "/dashboard/quotes") {
+  if (
+    pathname === "/dashboard/prayer-time" ||
+    pathname === "/dashboard/qibla-direction" ||
+    pathname === "/dashboard/quotes"
+  ) {
     return <div style={{ display: "none" }} />;
   }
 
@@ -149,7 +153,9 @@ export default function HeroCard() {
             <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
               Santri Alquran
             </span>
-            <h2 className="text-base font-extrabold leading-tight">{userName}</h2>
+            <h2 className="text-base font-extrabold leading-tight">
+              {userName}
+            </h2>
           </div>
         </div>
         <div className="bg-white/10 rounded-2xl p-3 flex justify-between items-center text-xs relative z-10">

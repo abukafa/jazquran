@@ -22,6 +22,7 @@ import {
   getAdminAnalytics,
   getSuperAdminAnalytics,
 } from "@/actions/graph";
+import Link from "next/link";
 
 ChartJS.register(
   CategoryScale,
@@ -96,14 +97,21 @@ export default function GraphPage() {
           : "Statistik Pribadi";
 
   return (
-    <div className="px-5 mt-2 space-y-6 pb-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-extrabold text-slate-800">
-          Analisis Progres
-        </h3>
-        <span className="bg-sage-100 text-sage-700 text-xs font-bold px-2.5 py-1 rounded-full">
-          {roleTitle}
-        </span>
+    <div className="px-5 mt-4 space-y-4 pb-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h3 className="text-xl font-extrabold text-slate-800">
+            Analisis Progres
+          </h3>
+          <p className="text-xs text-slate-500">{roleTitle}</p>
+        </div>
+        <Link
+          href="/dashboard/streak"
+          className="bg-sage-400 hover:bg-sage-500 text-white font-semibold py-1 px-3 rounded-xl transition shadow-sm shadow-sage-500/20 cursor-pointer text-sm flex items-center gap-1"
+        >
+          Streak
+          <i className="fa-solid fa-arrow-right ml-2"></i>
+        </Link>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
@@ -162,8 +170,10 @@ export default function GraphPage() {
               labels: data.dailyChart.labels,
               datasets: data.dailyChart.datasets.map((ds: any, i: number) => ({
                 ...ds,
-                borderColor: i === 0 ? "#2D7A60" : i === 1 ? "#F59E0B" : "#3B82F6",
-                backgroundColor: i === 0 ? "#D1E5DB" : i === 1 ? "#FEF3C7" : "#DBEAFE",
+                borderColor:
+                  i === 0 ? "#2D7A60" : i === 1 ? "#F59E0B" : "#3B82F6",
+                backgroundColor:
+                  i === 0 ? "#D1E5DB" : i === 1 ? "#FEF3C7" : "#DBEAFE",
                 tension: 0.4,
                 fill: false,
               })),
@@ -202,7 +212,9 @@ export default function GraphPage() {
         </h4>
         <div className="h-44 w-full flex justify-center items-center">
           {data.doughnutChart.data.every((val: number) => val === 0) ? (
-            <span className="text-sm text-slate-400 font-medium italic">Belum ada data Kelancaran Ziyadah</span>
+            <span className="text-sm text-slate-400 font-medium italic">
+              Belum ada data Kelancaran Ziyadah
+            </span>
           ) : (
             <Doughnut
               data={{
