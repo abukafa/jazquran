@@ -10,7 +10,11 @@ import {
   getMuridMurojaahData,
   resetMurojaahTatsbitData,
 } from "@/actions/murojaah";
-import { getPagesInJuz, calculateBinNadzorRange, toGlobalPage } from "@/lib/mushaf";
+import {
+  getPagesInJuz,
+  calculateBinNadzorRange,
+  toGlobalPage,
+} from "@/lib/mushaf";
 import AlertModal from "@/components/AlertModal";
 
 export default function MurojaahPage() {
@@ -182,8 +186,16 @@ export default function MurojaahPage() {
         tatsbitHalKe: item.tatsbitKe || "",
         tatsbitNilai: item.tatsbitNilai || "A",
       }));
-    } else if (type === "tatsbit" && item.ziyadahHasSetoran && item.ziyadahJuz && item.ziyadahHalamanKe) {
-      const range = calculateBinNadzorRange(item.ziyadahJuz, item.ziyadahHalamanKe);
+    } else if (
+      type === "tatsbit" &&
+      item.ziyadahHasSetoran &&
+      item.ziyadahJuz &&
+      item.ziyadahHalamanKe
+    ) {
+      const range = calculateBinNadzorRange(
+        item.ziyadahJuz,
+        item.ziyadahHalamanKe,
+      );
       if (range) {
         setFormData((prev) => ({
           ...prev,
@@ -325,7 +337,7 @@ export default function MurojaahPage() {
   };
 
   return (
-    <main className="px-5 md:p-6 pb-24 md:pb-6 max-w-7xl mx-auto space-y-6">
+    <main className="px-5 mt-4 md:mt-0 md:p-6 pb-24 md:pb-6 max-w-7xl mx-auto space-y-6">
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
         <div>
@@ -636,12 +648,16 @@ export default function MurojaahPage() {
                 />
               </div>
               {(() => {
-                const currentJuz = activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz;
-                const pagesCount = currentJuz ? getPagesInJuz(parseInt(currentJuz as string) || 0) : 0;
-                const pageOptions = Array.from({ length: pagesCount }).flatMap((_, i) => [
-                  `${i + 1}a`,
-                  `${i + 1}b`,
-                ]);
+                const currentJuz =
+                  activeModal === "partner"
+                    ? formData.partnerJuz
+                    : formData.tatsbitJuz;
+                const pagesCount = currentJuz
+                  ? getPagesInJuz(parseInt(currentJuz as string) || 0)
+                  : 0;
+                const pageOptions = Array.from({ length: pagesCount }).flatMap(
+                  (_, i) => [`${i + 1}a`, `${i + 1}b`],
+                );
                 return (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -664,9 +680,13 @@ export default function MurojaahPage() {
                           )
                         }
                       >
-                        <option value="" disabled>-- Pilih --</option>
+                        <option value="" disabled>
+                          -- Pilih --
+                        </option>
                         {pageOptions.map((p) => (
-                          <option key={p} value={p}>{p}</option>
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -690,9 +710,13 @@ export default function MurojaahPage() {
                           )
                         }
                       >
-                        <option value="" disabled>-- Pilih --</option>
+                        <option value="" disabled>
+                          -- Pilih --
+                        </option>
                         {pageOptions.map((p) => (
-                          <option key={p} value={p}>{p}</option>
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -703,20 +727,51 @@ export default function MurojaahPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const currentJuz = activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz;
-                    const dari = activeModal === "partner" ? formData.partnerHalDari : formData.tatsbitHalDari;
-                    const ke = activeModal === "partner" ? formData.partnerHalKe : formData.tatsbitHalKe;
+                    const currentJuz =
+                      activeModal === "partner"
+                        ? formData.partnerJuz
+                        : formData.tatsbitJuz;
+                    const dari =
+                      activeModal === "partner"
+                        ? formData.partnerHalDari
+                        : formData.tatsbitHalDari;
+                    const ke =
+                      activeModal === "partner"
+                        ? formData.partnerHalKe
+                        : formData.tatsbitHalKe;
                     const start = toGlobalPage(Number(currentJuz), dari);
                     const end = toGlobalPage(Number(currentJuz), ke);
-                    window.open(`/mushaf?start=${start}&end=${end}`, 'MushafWindow', 'width=600,height=800');
+                    window.open(
+                      `/mushaf?start=${start}&end=${end}`,
+                      "MushafWindow",
+                      "width=600,height=800",
+                    );
                   }}
                   className="w-full flex items-center justify-center gap-2 bg-sage-50 text-sage-700 py-2 rounded-xl text-sm font-bold border border-sage-200 hover:bg-sage-100 transition"
                 >
-                  <i className="fa-solid fa-book-open"></i> Buka Mushaf (Hal {
-                    toGlobalPage(Number(activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz), activeModal === "partner" ? formData.partnerHalDari : formData.tatsbitHalDari)
-                  } - {
-                    toGlobalPage(Number(activeModal === "partner" ? formData.partnerJuz : formData.tatsbitJuz), activeModal === "partner" ? formData.partnerHalKe : formData.tatsbitHalKe)
-                  })
+                  <i className="fa-solid fa-book-open"></i> Buka Mushaf (Hal{" "}
+                  {toGlobalPage(
+                    Number(
+                      activeModal === "partner"
+                        ? formData.partnerJuz
+                        : formData.tatsbitJuz,
+                    ),
+                    activeModal === "partner"
+                      ? formData.partnerHalDari
+                      : formData.tatsbitHalDari,
+                  )}{" "}
+                  -{" "}
+                  {toGlobalPage(
+                    Number(
+                      activeModal === "partner"
+                        ? formData.partnerJuz
+                        : formData.tatsbitJuz,
+                    ),
+                    activeModal === "partner"
+                      ? formData.partnerHalKe
+                      : formData.tatsbitHalKe,
+                  )}
+                  )
                 </button>
               </div>
 

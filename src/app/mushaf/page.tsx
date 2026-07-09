@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import { JUZ_START_PAGES } from "@/lib/mushaf";
 
 // Komponen untuk me-render satu halaman Mushaf sebagai Gambar (Image)
 function MushafPage({ pageNumber }: { pageNumber: number }) {
@@ -12,11 +13,11 @@ function MushafPage({ pageNumber }: { pageNumber: number }) {
   const imageUrl = `https://cdn.jsdelivr.net/gh/GovarJabbar/Quran-PNG@master/${paddedPage}.png`;
 
   return (
-    <div className="w-full h-full flex justify-center bg-white relative select-none">
+    <div className="w-full h-full flex items-center justify-center bg-[#F4F3ED] relative select-none">
       <img
         src={imageUrl}
         alt={`Mushaf Halaman ${pageNumber}`}
-        className="w-full h-full object-contain pointer-events-none"
+        className="w-full h-full object-contain pointer-events-none drop-shadow-xl"
         loading="lazy"
         draggable={false}
       />
@@ -24,26 +25,44 @@ function MushafPage({ pageNumber }: { pageNumber: number }) {
   );
 }
 
+function getJuzInfo(page: number) {
+  let juz = 1;
+  for (let i = 1; i <= 30; i++) {
+    if (page >= JUZ_START_PAGES[i] && page < JUZ_START_PAGES[i + 1]) {
+      juz = i;
+      break;
+    }
+  }
+  const halRelatif = page - JUZ_START_PAGES[juz] + 1;
+  const totalPagesInJuz = JUZ_START_PAGES[juz + 1] - JUZ_START_PAGES[juz];
+  return `${halRelatif}/${totalPagesInJuz}`;
+}
+
 function MushafViewer() {
   const searchParams = useSearchParams();
   const startParam = searchParams.get("start");
   const endParam = searchParams.get("end"); // Optional, if we want to limit, but user wants all pages
 
-  const initialStart = startParam ? parseInt(startParam, 10) : 1;
-  const [currentPage, setCurrentPage] = useState(
-    isNaN(initialStart) ? 1 : initialStart,
-  );
+  const minPage = startParam ? parseInt(startParam, 10) : 1;
+  const maxPage = endParam ? parseInt(endParam, 10) : 604;
+
+  const [currentPage, setCurrentPage] = useState(() => {
+    let initial = isNaN(minPage) ? 1 : minPage;
+    if (initial < 1) initial = 1;
+    if (initial > 604) initial = 604;
+    return initial;
+  });
 
   // Sync state if URL params change without reloading the whole window
   useEffect(() => {
     const sp = searchParams.get("start");
     if (sp) {
       const p = parseInt(sp, 10);
-      if (!isNaN(p) && p >= 1 && p <= 604) {
+      if (!isNaN(p) && p >= minPage && p <= maxPage) {
         setCurrentPage(p);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, minPage, maxPage]);
 
   // Swipe logic
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -75,12 +94,22 @@ function MushafViewer() {
   };
 
   const handleNext = () => {
-    if (currentPage < 604) setCurrentPage((p) => p + 1);
+    if (currentPage < maxPage && currentPage < 604) setCurrentPage((p) => p + 1);
   };
 
   const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((p) => p - 1);
+    if (currentPage > minPage && currentPage > 1) setCurrentPage((p) => p - 1);
   };
+
+  // Preload array
+  const pagesToPreload = [];
+  if (startParam && endParam && (maxPage - minPage < 30)) {
+    for (let i = minPage; i <= maxPage; i++) {
+      if (i !== currentPage) {
+        pagesToPreload.push(i);
+      }
+    }
+  }
 
   return (
     <div
@@ -89,13 +118,31 @@ function MushafViewer() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEndHandler}
     >
+      {/* Header Overlay */}
+      <div className="absolute top-0 inset-x-0 h-14 bg-slate-900/80 backdrop-blur-md text-white z-50 flex items-center justify-between px-4 shadow-sm">
+        <div className="text-sm font-extrabold tracking-wider bg-white/20 px-4 py-1.5 rounded-lg border border-white/10">
+          {getJuzInfo(currentPage)}
+        </div>
+        
+        <div className="text-sm font-extrabold tracking-wider bg-white/20 px-4 py-1.5 rounded-lg border border-white/10">
+          {currentPage}
+        </div>
+      </div>
+
       {/* Main Content Area */}
-      <div className="flex-1 relative flex items-center justify-center max-w-4xl mx-auto w-full h-[calc(100vh-64px)] overflow-hidden bg-white shadow-xl">
+      <div className="flex-1 relative flex items-center justify-center max-w-4xl mx-auto w-full h-full overflow-hidden bg-[#F4F3ED] pt-14">
+        {/* Preload images hidden from view */}
+        <div className="hidden">
+          {pagesToPreload.map(p => (
+            <img key={p} src={`https://cdn.jsdelivr.net/gh/GovarJabbar/Quran-PNG@master/${String(p).padStart(3, "0")}.png`} alt={`preload-${p}`} />
+          ))}
+        </div>
+
         {/* Edge Nav - Prev (Kanan) - Because RTL, previous page is to the right */}
         <button
           onClick={handlePrev}
-          disabled={currentPage <= 1}
-          className="absolute right-0 top-0 bottom-0 w-16 md:w-24 z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-l from-black/10 to-transparent disabled:hidden group"
+          disabled={currentPage <= minPage}
+          className="absolute right-0 top-14 bottom-0 w-16 md:w-24 z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-l from-black/10 to-transparent disabled:hidden group"
         ></button>
 
         {/* The Page Itself with simple fade/slide transition key */}
@@ -106,8 +153,8 @@ function MushafViewer() {
         {/* Edge Nav - Next (Kiri) - Because RTL, next page is to the left */}
         <button
           onClick={handleNext}
-          disabled={currentPage >= 604}
-          className="absolute left-0 top-0 bottom-0 w-16 md:w-24 z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-r from-black/10 to-transparent disabled:hidden group"
+          disabled={currentPage >= maxPage}
+          className="absolute left-0 top-14 bottom-0 w-16 md:w-24 z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-r from-black/10 to-transparent disabled:hidden group"
         ></button>
       </div>
     </div>
