@@ -5,6 +5,7 @@ import { useAppContext } from "@/context/AppContext";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { getMyHalaqahs } from "@/actions/guru";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { state, logout } = useAppContext();
@@ -88,7 +89,7 @@ export default function ProfilePage() {
   const verifiedColor = getVerifiedColor(state.currentRole);
 
   return (
-    <div className="px-5 space-y-6 pb-6">
+    <div className="px-5 mt-4 space-y-6 pb-6">
       <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center relative overflow-hidden">
         <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-r from-sage-500 to-sage-600"></div>
         <div className="relative pt-6">
@@ -224,6 +225,74 @@ export default function ProfilePage() {
         <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
           Aplikasi
         </h4>
+
+        {/* Intro Section */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+          <h3 className="text-sm font-bold text-slate-800 mb-2 text-center">
+            Tentang JazQuran
+          </h3>
+          <p className="text-xs text-slate-600 mb-3 leading-relaxed text-justify">
+            JazQuran dirancang dengan mengedepankan konsep{" "}
+            <span className="font-bold text-sage-600">Hafalan Tasbit</span>,
+            sebuah metode hafalan Alquran yang berfokus kuat pada pengulangan
+            (murojaah) terus-menerus. Dengan murojaah yang intensif, hafalan
+            tidak hanya sekadar hafal di lisan, tetapi menancap kuat (mutqin) di
+            dalam hati dan ingatan.
+          </p>
+          <p className="text-xs text-slate-600 mb-4 leading-relaxed text-justify">
+            Platform ini diciptakan sebagai alat bantu digital agar kegiatan
+            mengaji, setoran, dan murojaah dapat tercatat rapi. Harapannya,
+            JazQuran dapat disebarluaskan dan memberi manfaat bagi lebih banyak
+            pondok pesantren, sekolah Islam, komunitas Alquran, maupun rumah
+            tahfiz di seluruh penjuru negeri.
+          </p>
+          <Link
+            href="/dashboard/sop"
+            className="w-full bg-sage-50 hover:bg-sage-100 text-sage-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-center items-center gap-2 transition"
+          >
+            <i className="fa-solid fa-book-open-reader"></i> Pelajari SOP
+          </Link>
+        </div>
+
+        {/* Developer Profiles */}
+        <div className="grid grid-cols-2 gap-3 mt-4 mb-4">
+          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm text-center">
+            <div className="w-14 h-14 mx-auto bg-slate-100 rounded-full mb-3 flex items-center justify-center text-slate-400 text-xl border-2 border-sage-100 overflow-hidden">
+              {/* Gunakan ikon jika tidak ada foto */}
+              <Image
+                src="/img/adam.png"
+                alt="Adam Rabbani"
+                width={56}
+                height={56}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <h4 className="text-[11px] font-extrabold text-slate-800 leading-tight">
+              Adam Rabbani
+            </h4>
+            <p className="text-[9px] text-slate-500 mt-1 leading-tight">
+              Inisiator Konsep Hafalan & UI/UX Designer
+            </p>
+          </div>
+          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm text-center">
+            <div className="w-14 h-14 mx-auto bg-slate-100 rounded-full mb-3 flex items-center justify-center text-slate-400 text-xl border-2 border-sage-100 overflow-hidden">
+              <Image
+                src="/img/abu.png"
+                alt="Abu Kafa"
+                width={56}
+                height={56}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <h4 className="text-[11px] font-extrabold text-slate-800 leading-tight">
+              Abu Kafa
+            </h4>
+            <p className="text-[9px] text-slate-500 mt-1 leading-tight">
+              Software Engineer & Pengembang Aplikasi
+            </p>
+          </div>
+        </div>
+
         {isInstallable && (
           <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center mb-6">
             <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
@@ -233,8 +302,8 @@ export default function ProfilePage() {
               Instal JazQuran
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              Instal aplikasi ini ke perangkat Anda untuk akses lebih cepat dan
-              penggunaan saat offline.
+              Instal aplikasi ini ke perangkat smartphone Anda untuk akses lebih
+              cepat dan mudah.
             </p>
             <button
               onClick={handleInstallClick}
