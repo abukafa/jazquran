@@ -74,7 +74,7 @@ export default function StreakPage() {
   return (
     <div className="flex flex-col h-full pb-20">
       <div className="px-5 mt-4 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mx-2">
           <div>
             <h1 className="text-xl font-extrabold text-slate-800">
               Halaqah Streak
