@@ -5,6 +5,9 @@ import dbConnect from "@/lib/db";
 import { User } from "@/models/User";
 import { Tenant } from "@/models/Tenant"; // WAJIB DIIMPORT UNTUK POPULATE DI SERVERLESS
 
+// Initialize models to prevent tree-shaking in serverless
+Tenant.init();
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -60,9 +63,10 @@ export const authOptions: NextAuthOptions = {
               token.picture = dbUser.avatar; // Pass avatar to token
               
               if (dbUser.tenantId) {
-                 token.tenantId = dbUser.tenantId._id.toString();
-                 token.tenantName = dbUser.tenantId.name;
-                 token.tenantCode = dbUser.tenantId.code;
+                 const tId = dbUser.tenantId._id || dbUser.tenantId;
+                 token.tenantId = tId.toString();
+                 token.tenantName = dbUser.tenantId.name || "Unknown Tenant";
+                 token.tenantCode = dbUser.tenantId.code || "";
                  token.tenantPeriod = dbUser.tenantId.setting?.period || "Semester Berjalan";
               }
             }
