@@ -98,7 +98,7 @@ export default function GraphPage() {
 
   return (
     <div className="px-5 mt-4 space-y-4 pb-6">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 mx-2">
         <div>
           <h3 className="text-xl font-extrabold text-slate-800">
             Analisis Progres

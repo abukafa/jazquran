@@ -42,7 +42,7 @@ export default function StreakDetailPage() {
 
   return (
     <div className="flex flex-col h-full pb-20">
-      <div className="px-5 pt-6 space-y-6">
+      <div className="px-5 pt-4 space-y-6">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
