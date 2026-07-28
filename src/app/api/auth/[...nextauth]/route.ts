@@ -35,11 +35,6 @@ export const authOptions: NextAuthOptions = {
               role: defaultRole,
               avatar: user.image, // Save Google profile picture
             });
-          } else if (existingUser.avatar !== user.image || existingUser.name !== user.name) {
-            // Update avatar/name if changed on Google side
-            existingUser.avatar = user.image;
-            existingUser.name = user.name || existingUser.name;
-            await existingUser.save();
           }
           return true;
         } catch (error) {
@@ -61,6 +56,7 @@ export const authOptions: NextAuthOptions = {
               token.id = dbUser._id.toString();
               token.role = dbUser.role;
               token.picture = dbUser.avatar; // Pass avatar to token
+              token.name = dbUser.name; // Pass official name from database
               
               if (dbUser.tenantId) {
                  const tId = dbUser.tenantId._id || dbUser.tenantId;
@@ -83,6 +79,7 @@ export const authOptions: NextAuthOptions = {
         if (session.tenantCode) token.tenantCode = session.tenantCode;
         if (session.role) token.role = session.role;
         if (session.tenantPeriod) token.tenantPeriod = session.tenantPeriod;
+        if (session.name) token.name = session.name;
       }
       
       return token;
@@ -96,6 +93,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).tenantCode = token.tenantCode;
         (session.user as any).tenantPeriod = token.tenantPeriod;
         (session.user as any).image = token.picture; // Restore passing avatar to client session
+        (session.user as any).name = token.name; // Official name from database
       }
       return session;
     },

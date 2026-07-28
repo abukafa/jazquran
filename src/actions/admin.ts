@@ -3,6 +3,7 @@
 import dbConnect from "@/lib/db";
 import { Tenant } from "@/models/Tenant";
 import { User } from "@/models/User";
+import { Student } from "@/models/Student";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
@@ -144,6 +145,54 @@ export async function updateUserRole(
     }
 
     revalidatePath("/dashboard/admin/users");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateUserName(userId: string, newName: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) return { error: "Unauthorized" };
+
+    const callerRole = (session.user as any).role;
+    const callerTenantId = (session.user as any).tenantId;
+
+    if (callerRole !== "super-admin" && callerRole !== "admin-tenant") {
+      return { error: "Unauthorized" };
+    }
+
+    if (!newName || newName.trim() === "") {
+      return { error: "Nama tidak boleh kosong" };
+    }
+
+    await dbConnect();
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return { error: "User tidak ditemukan" };
+
+    // Security checks for admin-tenant
+    if (callerRole === "admin-tenant") {
+      if (
+        targetUser.tenantId &&
+        targetUser.tenantId.toString() !== callerTenantId
+      ) {
+        return { error: "Unauthorized" };
+      }
+    }
+
+    targetUser.name = newName.trim();
+    await targetUser.save();
+
+    // Update nama di tabel Student jika user ini terikat sebagai santri
+    await Student.updateMany(
+      { userId: new mongoose.Types.ObjectId(userId) },
+      { $set: { nama: newName.trim() } },
+    );
+
+    revalidatePath("/dashboard/admin/users");
+    revalidatePath("/dashboard/admin/halaqoh");
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
