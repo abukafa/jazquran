@@ -60,8 +60,112 @@ export async function getMurojaahByDate(halaqahId: string | undefined, dateStr: 
       mutabaahMap.set(log.studentId.toString(), log);
     });
 
+    // Dapatkan data murojaah partner terakhir sebelum atau pada tanggal tersebut
+    const lastPartners = await MutabaahDaily.aggregate([
+      {
+        $match: {
+          studentId: { $in: studentIds },
+          "murojaahPartner.isCompleted": true,
+          tanggal: { $lt: nextDay },
+        },
+      },
+      { $sort: { tanggal: -1 } },
+      {
+        $group: {
+          _id: "$studentId",
+          juz: { $first: "$murojaahPartner.juz" },
+          halamanDari: { $first: "$murojaahPartner.halamanDari" },
+          halamanKe: { $first: "$murojaahPartner.halamanKe" },
+        },
+      },
+    ]);
+
+    const lastPartnerMap = new Map();
+    lastPartners.forEach((lp: any) => {
+      lastPartnerMap.set(lp._id.toString(), lp);
+    });
+
+    // 1. Dapatkan data Bin-Nadzor terakhir
+    const lastBinNadzors = await MutabaahDaily.aggregate([
+      {
+        $match: {
+          studentId: { $in: studentIds },
+          "ziyadah.binNadzorComplete": true,
+          tanggal: { $lt: nextDay },
+        },
+      },
+      { $sort: { tanggal: -1 } },
+      {
+        $group: {
+          _id: "$studentId",
+          binNadzorJuz: { $first: "$ziyadah.binNadzorJuz" },
+          binNadzorHalamanDari: { $first: "$ziyadah.binNadzorHalamanDari" },
+          binNadzorHalamanKe: { $first: "$ziyadah.binNadzorHalamanKe" },
+        },
+      },
+    ]);
+
+    const lastBinNadzorMap = new Map();
+    lastBinNadzors.forEach((lb: any) => {
+      lastBinNadzorMap.set(lb._id.toString(), lb);
+    });
+
+    // 2. Dapatkan data Tatsbit terakhir
+    const lastTatsbits = await MutabaahDaily.aggregate([
+      {
+        $match: {
+          studentId: { $in: studentIds },
+          "tatsbit.isCompleted": true,
+          tanggal: { $lt: nextDay },
+        },
+      },
+      { $sort: { tanggal: -1 } },
+      {
+        $group: {
+          _id: "$studentId",
+          juz: { $first: "$tatsbit.juz" },
+          halamanDari: { $first: "$tatsbit.halamanDari" },
+          halamanKe: { $first: "$tatsbit.halamanKe" },
+          nilai: { $first: "$tatsbit.nilai" },
+        },
+      },
+    ]);
+
+    const lastTatsbitMap = new Map();
+    lastTatsbits.forEach((lt: any) => {
+      lastTatsbitMap.set(lt._id.toString(), lt);
+    });
+
+    // 3. Dapatkan data Ziyadah terakhir
+    const lastZiyadahs = await MutabaahDaily.aggregate([
+      {
+        $match: {
+          studentId: { $in: studentIds },
+          "ziyadah.hasSetoran": true,
+          tanggal: { $lt: nextDay },
+        },
+      },
+      { $sort: { tanggal: -1 } },
+      {
+        $group: {
+          _id: "$studentId",
+          juz: { $first: "$ziyadah.juz" },
+          halamanKe: { $first: "$ziyadah.halamanKe" },
+        },
+      },
+    ]);
+
+    const lastZiyadahMap = new Map();
+    lastZiyadahs.forEach((lz: any) => {
+      lastZiyadahMap.set(lz._id.toString(), lz);
+    });
+
     const data = students.map((student: any) => {
       const log = mutabaahMap.get(student._id.toString());
+      const lastP = lastPartnerMap.get(student._id.toString());
+      const lastBn = lastBinNadzorMap.get(student._id.toString());
+      const lastT = lastTatsbitMap.get(student._id.toString());
+      const lastZ = lastZiyadahMap.get(student._id.toString());
       return {
         _id: student._id.toString(),
         studentName: student.nama,
@@ -81,6 +185,25 @@ export async function getMurojaahByDate(halaqahId: string | undefined, dateStr: 
         ziyadahHasSetoran: log?.ziyadah?.hasSetoran || false,
         ziyadahJuz: log?.ziyadah?.juz || null,
         ziyadahHalamanKe: log?.ziyadah?.halamanKe || null,
+        // Last Murojaah Partner
+        lastPartnerJuz: lastP?.juz || null,
+        lastPartnerDari: lastP?.halamanDari || null,
+        lastPartnerKe: lastP?.halamanKe || null,
+        // Last Tatsbit
+        lastTatsbitComplete: Boolean(lastT),
+        lastTatsbitJuz: lastT?.juz || null,
+        lastTatsbitDari: lastT?.halamanDari || null,
+        lastTatsbitKe: lastT?.halamanKe || null,
+        lastTatsbitNilai: lastT?.nilai || "A",
+        // Last Bin Nadzor
+        lastBinNadzorComplete: Boolean(lastBn),
+        lastBinNadzorJuz: lastBn?.binNadzorJuz || null,
+        lastBinNadzorDari: lastBn?.binNadzorHalamanDari || null,
+        lastBinNadzorKe: lastBn?.binNadzorHalamanKe || null,
+        // Last Ziyadah
+        lastZiyadahHasSetoran: Boolean(lastZ),
+        lastZiyadahJuz: lastZ?.juz || null,
+        lastZiyadahHalamanKe: lastZ?.halamanKe || null,
       };
     });
 
@@ -318,6 +441,12 @@ export async function getMuridMurojaahData(dateStr: string) {
         tanggal: { $gte: queryDate, $lt: nextDay },
       }).lean();
 
+      const lastPartnerLog = await MutabaahDaily.findOne({
+        studentId: student.partnerId._id,
+        "murojaahPartner.isCompleted": true,
+        tanggal: { $lt: nextDay },
+      }).sort({ tanggal: -1 }).lean();
+
       partnerData = {
         _id: student.partnerId._id.toString(),
         studentName: (student.partnerId as any).nama,
@@ -325,6 +454,9 @@ export async function getMuridMurojaahData(dateStr: string) {
         murojaahPartnerJuz: partnerLog?.murojaahPartner?.juz || null,
         murojaahPartnerDari: partnerLog?.murojaahPartner?.halamanDari || null,
         murojaahPartnerKe: partnerLog?.murojaahPartner?.halamanKe || null,
+        lastPartnerJuz: lastPartnerLog?.murojaahPartner?.juz || null,
+        lastPartnerDari: lastPartnerLog?.murojaahPartner?.halamanDari || null,
+        lastPartnerKe: lastPartnerLog?.murojaahPartner?.halamanKe || null,
       };
     }
 

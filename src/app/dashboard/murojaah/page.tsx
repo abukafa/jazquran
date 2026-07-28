@@ -159,52 +159,83 @@ export default function MurojaahPage() {
     setActiveModal(type);
     setSelectedStudent(item._id || item.studentId);
 
-    // Reset Form
+    let partnerJuz = "";
+    let partnerHalDari = "";
+    let partnerHalKe = "";
+    let tatsbitJuz = "";
+    let tatsbitHalDari = "";
+    let tatsbitHalKe = "";
+    let tatsbitNilai = "A";
+
+    if (isEdit) {
+      partnerJuz = item.murojaahPartnerJuz || "";
+      partnerHalDari = item.murojaahPartnerDari || "";
+      partnerHalKe = item.murojaahPartnerKe || "";
+      tatsbitJuz = item.tatsbitJuz || "";
+      tatsbitHalDari = item.tatsbitDari || "";
+      tatsbitHalKe = item.tatsbitKe || "";
+      tatsbitNilai = item.tatsbitNilai || "A";
+    } else {
+      if (type === "partner") {
+        partnerJuz = item.lastPartnerJuz?.toString() || "";
+        partnerHalDari = item.lastPartnerDari || "";
+        partnerHalKe = item.lastPartnerKe || "";
+      } else if (type === "tatsbit") {
+        if (
+          item.lastBinNadzorComplete &&
+          item.lastBinNadzorJuz &&
+          item.lastBinNadzorDari &&
+          item.lastBinNadzorKe
+        ) {
+          tatsbitJuz = item.lastBinNadzorJuz.toString();
+          tatsbitHalDari = item.lastBinNadzorDari;
+          tatsbitHalKe = item.lastBinNadzorKe;
+        } else if (
+          item.lastTatsbitComplete &&
+          item.lastTatsbitJuz &&
+          item.lastTatsbitDari &&
+          item.lastTatsbitKe
+        ) {
+          tatsbitJuz = item.lastTatsbitJuz.toString();
+          tatsbitHalDari = item.lastTatsbitDari;
+          tatsbitHalKe = item.lastTatsbitKe;
+          tatsbitNilai = item.lastTatsbitNilai || "A";
+        } else if (
+          item.lastZiyadahHasSetoran &&
+          item.lastZiyadahJuz &&
+          item.lastZiyadahHalamanKe
+        ) {
+          const range = calculateBinNadzorRange(
+            item.lastZiyadahJuz,
+            item.lastZiyadahHalamanKe,
+          );
+          if (range) {
+            tatsbitJuz = range.juzDari.toString();
+            tatsbitHalDari = range.halDari;
+            tatsbitHalKe = range.halKe;
+          } else {
+            tatsbitJuz = item.lastZiyadahJuz.toString();
+            tatsbitHalDari = "1a";
+            tatsbitHalKe = item.lastZiyadahHalamanKe;
+          }
+        }
+      }
+    }
+
     setFormData({
-      partnerJuz: "",
-      partnerHalDari: "",
-      partnerHalKe: "",
-      tatsbitJuz: "",
-      tatsbitHalDari: "",
-      tatsbitHalKe: "",
-      tatsbitNilai: "A",
+      partnerJuz,
+      partnerHalDari,
+      partnerHalKe,
+      tatsbitJuz,
+      tatsbitHalDari,
+      tatsbitHalKe,
+      tatsbitNilai,
       tanggal:
         selectedDate ||
         new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .split("T")[0],
     });
-
-    if (isEdit) {
-      setFormData((prev) => ({
-        ...prev,
-        partnerJuz: item.murojaahPartnerJuz || "",
-        partnerHalDari: item.murojaahPartnerDari || "",
-        partnerHalKe: item.murojaahPartnerKe || "",
-        tatsbitJuz: item.tatsbitJuz || "",
-        tatsbitHalDari: item.tatsbitDari || "",
-        tatsbitHalKe: item.tatsbitKe || "",
-        tatsbitNilai: item.tatsbitNilai || "A",
-      }));
-    } else if (
-      type === "tatsbit" &&
-      item.ziyadahHasSetoran &&
-      item.ziyadahJuz &&
-      item.ziyadahHalamanKe
-    ) {
-      const range = calculateBinNadzorRange(
-        item.ziyadahJuz,
-        item.ziyadahHalamanKe,
-      );
-      if (range) {
-        setFormData((prev) => ({
-          ...prev,
-          tatsbitJuz: range.juzDari.toString(),
-          tatsbitHalDari: range.halDari,
-          tatsbitHalKe: range.halKe,
-        }));
-      }
-    }
   };
 
   const handleDelete = (studentId: string, itemDate: string) => {
