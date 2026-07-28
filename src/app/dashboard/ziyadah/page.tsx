@@ -154,8 +154,12 @@ export default function ZiyadahPage() {
     type: "setoran" | "talaqqi" | "binnadzor",
     item: any,
   ) => {
-    // Penguncian: Setoran Ziyadah hanya bisa dibuka jika Murojaah Partner sudah selesai
-    if (type === "setoran" && !item.murojaahPartnerComplete) {
+    // Penguncian: Setoran Ziyadah hanya bisa dibuka jika Murojaah Partner sudah selesai (kecuali Admin Sekolah)
+    if (
+      type === "setoran" &&
+      !item.murojaahPartnerComplete &&
+      state.currentRole !== "admin-tenant"
+    ) {
       showAlert(
         "Perhatian",
         `Mohon selesaikan Muroja'ah Partner untuk ${item.studentName} terlebih dahulu hari ini.`,

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getUsers, getTenants, updateUserRole } from "@/actions/admin";
+import { getUsers, getTenants, updateUserRole, updateUserName } from "@/actions/admin";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -12,6 +12,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<{ id: string; name: string } | null>(null);
+  const [newDisplayName, setNewDisplayName] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -50,6 +52,25 @@ export default function UsersPage() {
       alert(res.error);
     }
     await fetchData();
+    setIsUpdating(null);
+  };
+
+  const openEditNameModal = (user: any) => {
+    setEditingUser({ id: user._id, name: user.name });
+    setNewDisplayName(user.name);
+  };
+
+  const handleSaveName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setIsUpdating(editingUser.id);
+    const res = await updateUserName(editingUser.id, newDisplayName);
+    if (res?.error) {
+      alert(res.error);
+    } else {
+      await fetchData();
+      setEditingUser(null);
+    }
     setIsUpdating(null);
   };
 
@@ -99,8 +120,18 @@ export default function UsersPage() {
               )}
               <div className="flex items-center gap-3">
                 <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-12 h-12 rounded-full border border-slate-200" />
-                <div>
-                  <h3 className="font-bold text-slate-800 text-sm">{user.name}</h3>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-800 text-sm">{user.name}</h3>
+                    <button
+                      type="button"
+                      onClick={() => openEditNameModal(user)}
+                      className="text-slate-400 hover:text-sage-600 transition p-1"
+                      title="Ubah Nama Tampilan"
+                    >
+                      <i className="fa-solid fa-pen-to-square text-xs"></i>
+                    </button>
+                  </div>
                   <p className="text-xs text-slate-500">{user.email}</p>
                 </div>
               </div>
@@ -139,6 +170,61 @@ export default function UsersPage() {
           ))
         )}
       </div>
+
+      {/* Modal Edit Display Name */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-slate-800 text-base">
+                Ubah Nama Tampilan
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingUser(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveName} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-600 block mb-1">
+                  Nama Tampilan (Display Name)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newDisplayName}
+                  onChange={(e) => setNewDisplayName(e.target.value)}
+                  placeholder="Masukkan nama asli pengguna..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-sage-500"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Nama ini akan ditampilkan di seluruh aplikasi dan tidak akan ditimpa oleh nama akun Google.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-sage-600 hover:bg-sage-700 transition shadow-sm"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
