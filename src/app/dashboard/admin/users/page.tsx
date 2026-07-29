@@ -119,7 +119,7 @@ export default function UsersPage() {
                 </div>
               )}
               <div className="flex items-center gap-3">
-                <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-12 h-12 rounded-full border border-slate-200" />
+                <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} referrerPolicy="no-referrer" className="w-12 h-12 rounded-full border border-slate-200 object-cover" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-slate-800 text-sm">{user.name}</h3>

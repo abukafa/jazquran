@@ -35,6 +35,11 @@ export const authOptions: NextAuthOptions = {
               role: defaultRole,
               avatar: user.image, // Save Google profile picture
             });
+          } else if (user.image && existingUser.avatar !== user.image) {
+            // HANYA update foto profil (avatar) dari akun Google
+            // TIDAK menimpa existingUser.name agar Display Name di database aman dari timpaan Google
+            existingUser.avatar = user.image;
+            await existingUser.save();
           }
           return true;
         } catch (error) {
@@ -55,8 +60,8 @@ export const authOptions: NextAuthOptions = {
             if (dbUser) {
               token.id = dbUser._id.toString();
               token.role = dbUser.role;
-              token.picture = dbUser.avatar; // Pass avatar to token
-              token.name = dbUser.name; // Pass official name from database
+              token.picture = dbUser.avatar || token.picture || user?.image; // Gunakan dbUser.avatar atau fallback ke foto Google
+              token.name = dbUser.name || token.name || user?.name; // Prioritaskan Display Name dari database
               
               if (dbUser.tenantId) {
                  const tId = dbUser.tenantId._id || dbUser.tenantId;
