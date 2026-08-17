@@ -8,8 +8,8 @@ import OfflineSyncManager from "./OfflineSyncManager";
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <OfflineSyncManager />
       <AppProvider>
+        <OfflineSyncManager />
         <MobileWrapper>
           {children}
         </MobileWrapper>

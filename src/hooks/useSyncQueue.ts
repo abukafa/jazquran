@@ -1,19 +1,24 @@
 import { useEffect } from 'react';
 import { db } from '@/lib/dexie';
+import { useAppContext } from '@/context/AppContext';
 
 export function useSyncQueue() {
+  const { state, setSyncing } = useAppContext();
+
   useEffect(() => {
-    let isSyncing = false;
+    let isSyncingLocal = false;
     let syncInterval: any;
 
     async function processQueue() {
-      if (isSyncing || !navigator.onLine) return;
+      if (isSyncingLocal || !navigator.onLine) return;
 
       try {
-        isSyncing = true;
+        isSyncingLocal = true;
+        setSyncing(true);
         const queueItems = await db.syncQueue.orderBy('id').toArray();
         if (queueItems.length === 0) {
-          isSyncing = false;
+          isSyncingLocal = false;
+          setSyncing(false);
           return;
         }
 
@@ -39,7 +44,8 @@ export function useSyncQueue() {
       } catch (err) {
         console.error('Sync queue processing error:', err);
       } finally {
-        isSyncing = false;
+        isSyncingLocal = false;
+        setSyncing(false);
       }
     }
 

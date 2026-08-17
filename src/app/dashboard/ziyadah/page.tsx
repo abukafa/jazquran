@@ -403,10 +403,15 @@ export default function ZiyadahPage() {
         <h3 className="text-lg font-extrabold text-slate-800 ml-2">
           Mutabaah Ziyadah
         </h3>
-        {/* INDIKATOR OFFLINE */}
-        <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1 mr-2">
-          <i className="fa-solid fa-wifi"></i> Online Sync
-        </span>
+        {state.isOnline ? (
+          <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1 mr-2">
+            <i className={`fa-solid fa-wifi ${state.isSyncing ? "animate-pulse" : ""}`}></i> Online Sync
+          </span>
+        ) : (
+          <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1 mr-2">
+            <i className="fa-solid fa-plane"></i> Offline Mode
+          </span>
+        )}
       </div>
 
       {["guru", "admin-tenant"].includes(state.currentRole || "") && (

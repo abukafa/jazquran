@@ -43,6 +43,7 @@ interface AppState {
   userId?: string;
   tenantId?: string;
   isOnline: boolean;
+  isSyncing: boolean;
   syncQueue: any[];
   students: Student[];
   tenants: Tenant[];
@@ -54,6 +55,7 @@ interface AppContextType {
   login: (role: Role) => void;
   logout: () => void;
   setOnline: (status: boolean) => void;
+  setSyncing: (status: boolean) => void;
   addMutabaah: (data: Omit<Mutabaah, "id">) => void;
 }
 
@@ -63,6 +65,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>({
     currentRole: null,
     isOnline: true,
+    isSyncing: false,
     syncQueue: [],
     students: [],
     tenants: [],
@@ -84,6 +87,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, status]);
 
+  useEffect(() => {
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+
+    // Initial check
+    if (typeof window !== "undefined") {
+      setOnline(navigator.onLine);
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      }
+    };
+  }, []);
+
   const login = (role: Role) => {
     localStorage.setItem("jaz_role", role || "");
     setState((prev) => ({ ...prev, currentRole: role }));
@@ -98,6 +120,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, isOnline: status }));
   };
 
+  const setSyncing = (status: boolean) => {
+    setState((prev) => ({ ...prev, isSyncing: status }));
+  };
+
   const addMutabaah = (data: Omit<Mutabaah, "id">) => {
     const newEntry = { ...data, id: "m-" + Date.now() };
     setState((prev) => ({
@@ -107,7 +133,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ state, login, logout, setOnline, addMutabaah }}>
+    <AppContext.Provider value={{ state, login, logout, setOnline, setSyncing, addMutabaah }}>
       {children}
     </AppContext.Provider>
   );

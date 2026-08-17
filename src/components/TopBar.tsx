@@ -22,16 +22,24 @@ export default function TopBar() {
   return (
     <div className="bg-sage-600 text-white px-5 pt-3 pb-2 text-xs flex justify-between items-center z-50 shadow-sm shrink-0">
       <div className="flex items-center gap-2">
-        <i className="fa-solid fa-cloud-sun"></i>
+        <i
+          className={`fa-solid fa-cloud-sun ${state.isSyncing ? "animate-pulse" : ""}`}
+        ></i>
         <span className="font-semibold">{time || "12:00 PM"}</span>
       </div>
       {/* INDIKATOR OFFLINE */}
       <div className="flex items-center gap-2">
-        <span className="mb-0.5">{state.isOnline ? "ONLINE" : "OFFLINE"}</span>
+        <span className="mb-0.5">
+          {state.isSyncing
+            ? "Syncing..."
+            : state.isOnline
+              ? "ONLINE"
+              : "OFFLINE"}
+        </span>
         <div
           className={`w-3 h-3 rounded-full ${
             state.isOnline ? "bg-green-500" : "bg-red-500"
-          }`}
+          } ${state.isSyncing ? "animate-pulse" : ""}`}
         ></div>
       </div>
     </div>

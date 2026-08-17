@@ -89,16 +89,22 @@ export default function MurojaahPage() {
     let localHalaqahs: any[] = [];
     if (state.currentRole === "guru") {
       if ((state as any).userId) {
-        localHalaqahs = await db.halaqahs.where('guruId').equals((state as any).userId).toArray();
+        localHalaqahs = await db.halaqahs
+          .where("guruId")
+          .equals((state as any).userId)
+          .toArray();
       }
     } else if (state.currentRole === "admin-tenant") {
       if ((state as any).tenantId) {
-        localHalaqahs = await db.halaqahs.where('tenantId').equals((state as any).tenantId).toArray();
+        localHalaqahs = await db.halaqahs
+          .where("tenantId")
+          .equals((state as any).tenantId)
+          .toArray();
       }
     } else if (state.currentRole === "super-admin") {
       localHalaqahs = await db.halaqahs.toArray();
     }
-    
+
     if (localHalaqahs.length > 0) {
       setHalaqahs(localHalaqahs);
       setSelectedHalaqah(localHalaqahs[0]._id);
@@ -107,48 +113,64 @@ export default function MurojaahPage() {
 
   const swrData = useLiveQuery(async () => {
     if (!state.currentRole) return { students: [], partnerData: null };
-    
+
     if (state.currentRole === "murid") {
-       const dFilter = selectedDate || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0];
-       // Fetch murid's mutabaah
-       const myId = (state as any).userId; // Or fetch from session
-       // Because it's complex, let's just query mutabaahs directly.
-       const mutabaahs = await db.mutabaahs.toArray();
-       // Mock for now:
-       return { students: [], partnerData: null };
-    } else if (["guru", "admin-tenant", "super-admin"].includes(state.currentRole)) {
-       if (!selectedHalaqah) return { students: [], partnerData: null };
-       // Query students in selectedHalaqah
-       const students = await db.students.where({ halaqahId: selectedHalaqah }).toArray();
-       const mutabaahs = await db.mutabaahs.filter(m => {
+      const dFilter =
+        selectedDate ||
+        new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+          .toISOString()
+          .split("T")[0];
+      // Fetch murid's mutabaah
+      const myId = (state as any).userId; // Or fetch from session
+      // Because it's complex, let's just query mutabaahs directly.
+      const mutabaahs = await db.mutabaahs.toArray();
+      // Mock for now:
+      return { students: [], partnerData: null };
+    } else if (
+      ["guru", "admin-tenant", "super-admin"].includes(state.currentRole)
+    ) {
+      if (!selectedHalaqah) return { students: [], partnerData: null };
+      // Query students in selectedHalaqah
+      const students = await db.students
+        .where({ halaqahId: selectedHalaqah })
+        .toArray();
+      const mutabaahs = await db.mutabaahs
+        .filter((m) => {
           try {
-            return new Date(m.tanggal).toISOString().split('T')[0] === selectedDate && m.guruId === (state as any).userId;
-          } catch(e) {
+            return (
+              new Date(m.tanggal).toISOString().split("T")[0] ===
+                selectedDate && m.guruId === (state as any).userId
+            );
+          } catch (e) {
             return false;
           }
-       }).toArray();
-       
-       const mappedStudents = students.map(s => {
-          const m = mutabaahs.find(mut => mut.studentId === s._id);
-          return {
-             _id: s._id,
-             studentName: s.nama,
-             partnerName: "Partner", // Need to resolve partner
-             murojaahPartnerComplete: m?.murojaahPartner?.isCompleted || false,
-             murojaahPartnerJuz: m?.murojaahPartner?.juz,
-             murojaahPartnerDari: m?.murojaahPartner?.halamanDari,
-             murojaahPartnerKe: m?.murojaahPartner?.halamanKe,
-             tatsbitComplete: m?.tatsbit?.isCompleted || false,
-             tatsbitJuz: m?.tatsbit?.juz,
-             tatsbitDari: m?.tatsbit?.halamanDari,
-             tatsbitKe: m?.tatsbit?.halamanKe,
-             tatsbitNilai: m?.tatsbit?.nilai,
-          };
-       });
-       return { students: mappedStudents, partnerData: null };
+        })
+        .toArray();
+
+      const mappedStudents = students.map((s) => {
+        const m = mutabaahs.find((mut) => mut.studentId === s._id);
+        return {
+          _id: s._id,
+          studentName: s.nama,
+          partnerName: "Partner", // Need to resolve partner
+          murojaahPartnerComplete: m?.murojaahPartner?.isCompleted || false,
+          murojaahPartnerJuz: m?.murojaahPartner?.juz,
+          murojaahPartnerDari: m?.murojaahPartner?.halamanDari,
+          murojaahPartnerKe: m?.murojaahPartner?.halamanKe,
+          tatsbitComplete: m?.tatsbit?.isCompleted || false,
+          tatsbitJuz: m?.tatsbit?.juz,
+          tatsbitDari: m?.tatsbit?.halamanDari,
+          tatsbitKe: m?.tatsbit?.halamanKe,
+          tatsbitNilai: m?.tatsbit?.nilai,
+        };
+      });
+      return { students: mappedStudents, partnerData: null };
     }
     return { students: [], partnerData: null };
-  }, [state.currentRole, selectedHalaqah, selectedDate]) || { students: [], partnerData: null };
+  }, [state.currentRole, selectedHalaqah, selectedDate]) || {
+    students: [],
+    partnerData: null,
+  };
 
   const isLoading = false; // useLiveQuery resolves quickly
   const mutate = (updater?: any, opt?: boolean) => {}; // Dummy for optimistic UI compatibility
@@ -342,14 +364,10 @@ export default function MurojaahPage() {
           payload.dateStr,
           payload.murojaahData,
           (state as any).userId,
-          (state as any).tenantId
+          (state as any).tenantId,
         );
         if (res.success) result = true;
-        else
-          showAlert(
-            "Gagal Menyimpan",
-            "Gagal menyimpan data partner."
-          );
+        else showAlert("Gagal Menyimpan", "Gagal menyimpan data partner.");
       } else if (activeModal === "tatsbit") {
         const payload = {
           studentId: selectedStudent,
@@ -367,14 +385,10 @@ export default function MurojaahPage() {
           payload.dateStr,
           payload.tatsbitData,
           (state as any).userId,
-          (state as any).tenantId
+          (state as any).tenantId,
         );
         if (res.success) result = true;
-        else
-          showAlert(
-            "Gagal Menyimpan",
-            "Gagal menyimpan data tatsbit."
-          );
+        else showAlert("Gagal Menyimpan", "Gagal menyimpan data tatsbit.");
       }
 
       if (result) {
