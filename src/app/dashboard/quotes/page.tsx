@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { toPng } from "html-to-image";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/dexie";
 
 interface QuoteData {
   _id: string;
@@ -24,8 +26,7 @@ export default function QuotesQuraniPage() {
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id;
 
-  const [quotes, setQuotes] = useState<QuoteData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Managed by useLiveQuery implicitly, but let's keep it simple
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -36,24 +37,27 @@ export default function QuotesQuraniPage() {
   const [isFetchingAyah, setIsFetchingAyah] = useState(false);
   const [newQuote, setNewQuote] = useState({ text: "", verseText: "", verseTranslation: "", verseRef: "" });
 
-  const fetchQuotes = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/quotes");
-      const json = await res.json();
-      if (json.success) {
-        setQuotes(json.data);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const quotes = useLiveQuery(async () => {
+    const rawQuotes = await db.quotes.toArray();
+    // Populate authorId
+    const populatedQuotes = await Promise.all(
+      rawQuotes.map(async (quote) => {
+        const author = await db.users.get(quote.authorId);
+        return {
+          ...quote,
+          authorId: {
+            _id: author?._id || quote.authorId,
+            name: author?.name || "Unknown",
+            avatar: author?.avatar
+          }
+        } as unknown as QuoteData;
+      })
+    );
+    // Sort descending by createdAt
+    return populatedQuotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, []) || [];
 
   useEffect(() => {
-    fetchQuotes();
-
     // Fetch surahs for modal
     fetch("https://equran.id/api/v2/surat")
       .then(res => res.json())
@@ -88,26 +92,34 @@ export default function QuotesQuraniPage() {
     
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/quotes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newQuote),
-      });
-      const json = await res.json();
+      const _id = crypto.randomUUID(); // Generate offline ID
+      const createdAt = new Date().toISOString();
+      const quoteData = {
+        ...newQuote,
+        _id,
+        authorId: userId,
+        likes: [],
+        createdAt,
+        updatedAt: createdAt
+      };
       
-      if (json.success) {
-        setIsModalOpen(false);
-        // Reset form
-        setNewQuote({ text: "", verseText: "", verseTranslation: "", verseRef: "" });
-        setSelectedSurah("");
-        setSelectedAyah("");
-        // Refresh quotes
-        fetchQuotes();
-      } else {
-        alert(json.message || "Gagal menyimpan quote");
-      }
+      await db.transaction('rw', db.quotes, db.syncQueue, async () => {
+        await db.quotes.add(quoteData as any);
+        await db.syncQueue.add({
+          action: 'CREATE',
+          collection: 'Quote',
+          payload: quoteData,
+          createdAt: new Date()
+        });
+      });
+      
+      setIsModalOpen(false);
+      // Reset form
+      setNewQuote({ text: "", verseText: "", verseTranslation: "", verseRef: "" });
+      setSelectedSurah("");
+      setSelectedAyah("");
     } catch (e) {
-      alert("Terjadi kesalahan sistem");
+      alert("Terjadi kesalahan saat menyimpan quote offline.");
     } finally {
       setIsSubmitting(false);
     }
@@ -118,24 +130,28 @@ export default function QuotesQuraniPage() {
       return alert("Silakan login terlebih dahulu untuk menyukai quote.");
     }
 
-    // Optimistic Update
-    setQuotes(prev => prev.map(q => {
-      if (q._id === quoteId) {
-        const hasLiked = q.likes.includes(userId);
-        return {
-          ...q,
-          likes: hasLiked ? q.likes.filter(id => id !== userId) : [...q.likes, userId]
-        };
-      }
-      return q;
-    }));
-
     try {
-      await fetch(`/api/quotes/${quoteId}/like`, { method: "POST" });
+      await db.transaction('rw', db.quotes, db.syncQueue, async () => {
+        const quote = await db.quotes.get(quoteId);
+        if (!quote) return;
+        
+        const hasLiked = quote.likes.includes(userId);
+        if (hasLiked) {
+          quote.likes = quote.likes.filter(id => id !== userId);
+        } else {
+          quote.likes.push(userId);
+        }
+        
+        await db.quotes.put(quote);
+        await db.syncQueue.add({
+          action: 'UPDATE',
+          collection: 'Quote',
+          payload: { _id: quoteId, likes: quote.likes },
+          createdAt: new Date()
+        });
+      });
     } catch (e) {
       console.error("Like failed", e);
-      // Optional: Revert optimistic update here
-      fetchQuotes();
     }
   };
 
