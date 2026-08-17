@@ -40,6 +40,8 @@ interface Mutabaah {
 
 interface AppState {
   currentRole: Role;
+  userId?: string;
+  tenantId?: string;
   isOnline: boolean;
   syncQueue: any[];
   students: Student[];
@@ -71,9 +73,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (session?.user && (session.user as any).role) {
-      setState((prev) => ({ ...prev, currentRole: (session.user as any).role }));
+      setState((prev) => ({ 
+        ...prev, 
+        currentRole: (session.user as any).role,
+        userId: (session.user as any).id || (session.user as any)._id,
+        tenantId: (session.user as any).tenantId,
+      }));
     } else if (status === "unauthenticated") {
-      setState((prev) => ({ ...prev, currentRole: null }));
+      setState((prev) => ({ ...prev, currentRole: null, userId: undefined, tenantId: undefined }));
     }
   }, [session, status]);
 

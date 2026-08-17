@@ -25,8 +25,14 @@ export default function TopBar() {
         <i className="fa-solid fa-cloud-sun"></i>
         <span className="font-semibold">{time || "12:00 PM"}</span>
       </div>
-      <div className="flex items-center gap-3">
-        {/* Removed Online toggle and SyncQueue display */}
+      {/* INDIKATOR OFFLINE */}
+      <div className="flex items-center gap-2">
+        <span className="mb-0.5">{state.isOnline ? "ONLINE" : "OFFLINE"}</span>
+        <div
+          className={`w-3 h-3 rounded-full ${
+            state.isOnline ? "bg-green-500" : "bg-red-500"
+          }`}
+        ></div>
       </div>
     </div>
   );

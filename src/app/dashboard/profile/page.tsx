@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { getMyHalaqahs } from "@/actions/guru";
+import { db } from "@/lib/dexie";
 import Image from "next/image";
 
 export default function ProfilePage() {
@@ -36,9 +36,16 @@ export default function ProfilePage() {
   useEffect(() => {
     if (state.currentRole === "guru") {
       const fetchHalaqahs = async () => {
-        const res = await getMyHalaqahs();
-        if (res.success && res.halaqahs) {
-          setMyHalaqahs(res.halaqahs);
+        let localHalaqahs: any[] = [];
+        if (state.currentRole === "guru") {
+          localHalaqahs = await db.halaqahs.where('guruId').equals((state as any).userId).toArray();
+        } else if (state.currentRole === "admin-tenant") {
+          localHalaqahs = await db.halaqahs.where('tenantId').equals((state as any).tenantId).toArray();
+        } else if (state.currentRole === "super-admin") {
+          localHalaqahs = await db.halaqahs.toArray();
+        }
+        if (localHalaqahs.length > 0) {
+          setMyHalaqahs(localHalaqahs);
         }
       };
       fetchHalaqahs();
