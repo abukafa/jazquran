@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getStudentHeatmap } from "@/actions/streak";
+import { getStudentHeatmapLocal } from "@/lib/streakClient";
 
 export default function StreakDetailPage() {
   const params = useParams();
@@ -17,7 +17,7 @@ export default function StreakDetailPage() {
 
   useEffect(() => {
     if (studentId) {
-      getStudentHeatmap(studentId)
+      getStudentHeatmapLocal(studentId)
         .then((res) => {
           setData(res);
           setLoading(false);

@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { getTenants } from "@/actions/admin";
 import { getHalaqahs } from "@/actions/halaqah";
-import { getStreakList } from "@/actions/streak";
+import { getStreakListLocal } from "@/lib/streakClient";
+import { db } from "@/lib/dexie";
 import { useSession } from "next-auth/react";
 
 export default function StreakPage() {
@@ -22,12 +23,10 @@ export default function StreakPage() {
 
   useEffect(() => {
     if (role === "super-admin") {
-      getTenants().then((res) => {
-        if (res.tenants) {
-          setTenants(res.tenants);
-          if (res.tenants.length > 0) {
-            setSelectedTenant(res.tenants[0]._id);
-          }
+      db.tenants.toArray().then(localTenants => {
+        setTenants(localTenants);
+        if (localTenants.length > 0) {
+          setSelectedTenant(localTenants[0]._id);
         }
       });
     } else if (userTenantId) {
@@ -49,7 +48,7 @@ export default function StreakPage() {
     setLoading(true);
     try {
       if (selectedTenant) {
-        const data = await getStreakList(
+        const data = await getStreakListLocal(
           selectedTenant,
           selectedHalaqah === "all" ? undefined : selectedHalaqah,
         );

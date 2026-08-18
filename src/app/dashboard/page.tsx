@@ -254,11 +254,14 @@ export default function DashboardHome() {
                     onChange={(e) => setSelectedJuz(Number(e.target.value))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sage-500"
                   >
-                    {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => (
-                      <option key={juz} value={juz}>
-                        Juz {juz}
-                      </option>
-                    ))}
+                    {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => {
+                      const r = getJuzRange(juz);
+                      return (
+                        <option key={juz} value={juz}>
+                          Juz {juz} (Halaman {r.startPage} s/d {r.endPage})
+                        </option>
+                      );
+                    })}
                   </select>
                   <div className="p-3 bg-sage-50 border border-sage-100 rounded-2xl text-xs text-sage-800 flex items-center space-x-2">
                     <i className="fa-solid fa-circle-info text-sage-600"></i>
@@ -281,7 +284,7 @@ export default function DashboardHome() {
                   >
                     {SURAH_LIST.map((surah) => (
                       <option key={surah.id} value={surah.id}>
-                        {surah.name}
+                        {surah.name} (Halaman {surah.startPage} {surah.endPage > surah.startPage ? `s/d ${surah.endPage}` : ''})
                       </option>
                     ))}
                   </select>
