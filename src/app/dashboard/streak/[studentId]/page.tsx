@@ -70,6 +70,7 @@ export default function StreakDetailPage() {
             </p>
           </div>
         ) : (
+          // CARD HEATMAP
           <div className="space-y-6">
             {data.heatmapData.map((juzData: any) => (
               <div
@@ -80,9 +81,25 @@ export default function StreakDetailPage() {
                   <h3 className="font-bold text-slate-700">
                     Juz {juzData.juz}
                   </h3>
-                  <span className="text-xs font-extrabold text-sage-600 bg-sage-50 px-2.5 py-1 rounded-full border border-sage-100">
-                    {juzData.completionPercentage}%
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      title="Setoran 1 Juz Penuh (1 - 20+)"
+                      className={`${juzData.fullJuzCount == 0 && "hidden"} text-[10px] font-bold text-white bg-blue-500 px-2 py-1 rounded-md shadow-sm flex items-center gap-1`}
+                    >
+                      <i className="fa-solid fa-star text-[8px]"></i>{" "}
+                      {juzData.fullJuzCount || 0}
+                    </span>
+                    <span
+                      title="Setoran 1/2 Juz (1 - 10 / 11 - 20+)"
+                      className={`${juzData.halfJuzCount == 0 && "hidden"} text-[10px] font-bold text-white bg-amber-500 px-2 py-1 rounded-md shadow-sm flex items-center gap-1`}
+                    >
+                      <i className="fa-solid fa-star-half-stroke text-[8px]"></i>{" "}
+                      {juzData.halfJuzCount || 0}
+                    </span>
+                    <span className="text-xs font-extrabold text-sage-600 bg-sage-50 px-2.5 py-1 rounded-full border border-sage-100 ml-1">
+                      {juzData.completionPercentage}%
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-1">

@@ -164,9 +164,11 @@ export async function getStudentHeatmap(studentId: string) {
 
     // Mapping frequency: juz -> page -> count
     const frequencyMap: Record<number, Record<number, number>> = {};
+    const fullJuzCountMap: Record<number, number> = {};
+    const halfJuzCountMap: Record<number, number> = {};
 
     records.forEach((record: any) => {
-      const processSection = (section: any) => {
+      const processSection = (section: any, isMurojaahPartner: boolean) => {
         if (section && section.isCompleted) {
           const juz = section.juz;
           const dari = parsePage(section.halamanDari);
@@ -181,12 +183,21 @@ export async function getStudentHeatmap(studentId: string) {
                 frequencyMap[juz][p] = (frequencyMap[juz][p] || 0) + 1;
               }
             }
+
+            if (isMurojaahPartner) {
+              const pagesCount = end - start + 1;
+              if (pagesCount >= 20) {
+                fullJuzCountMap[juz] = (fullJuzCountMap[juz] || 0) + 1;
+              } else if (pagesCount >= 10) {
+                halfJuzCountMap[juz] = (halfJuzCountMap[juz] || 0) + 1;
+              }
+            }
           }
         }
       };
 
-      processSection(record.murojaahPartner);
-      processSection(record.tatsbit);
+      processSection(record.murojaahPartner, true);
+      processSection(record.tatsbit, false);
     });
 
     // Format for frontend
@@ -212,6 +223,8 @@ export async function getStudentHeatmap(studentId: string) {
       heatmapData.push({
         juz,
         completionPercentage,
+        fullJuzCount: fullJuzCountMap[juz] || 0,
+        halfJuzCount: halfJuzCountMap[juz] || 0,
         pages
       });
     }
