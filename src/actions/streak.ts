@@ -152,15 +152,29 @@ export async function getStreakList(tenantId: string, halaqahId?: string) {
   }
 }
 
-export async function getStudentHeatmap(studentId: string) {
+export async function getStudentHeatmap(studentId: string, startDate?: string, endDate?: string) {
   await dbConnect();
   try {
     const student = await Student.findById(studentId).select('nama').lean();
     if (!student) throw new Error("Student not found");
 
-    const records = await MutabaahDaily.find({
+    const query: any = {
       studentId: new mongoose.Types.ObjectId(studentId)
-    }).select('murojaahPartner tatsbit').lean();
+    };
+
+    if (startDate || endDate) {
+      query.tanggal = {};
+      if (startDate) {
+        query.tanggal.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.tanggal.$lte = end;
+      }
+    }
+
+    const records = await MutabaahDaily.find(query).select('murojaahPartner tatsbit tanggal').lean();
 
     // Mapping frequency: juz -> page -> count
     const frequencyMap: Record<number, Record<number, number>> = {};

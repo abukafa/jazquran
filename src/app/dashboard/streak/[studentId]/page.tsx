@@ -15,9 +15,13 @@ export default function StreakDetailPage() {
     heatmapData: any[];
   } | null>(null);
 
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   useEffect(() => {
     if (studentId) {
-      getStudentHeatmap(studentId)
+      setLoading(true);
+      getStudentHeatmap(studentId, startDate, endDate)
         .then((res) => {
           setData(res);
           setLoading(false);
@@ -27,7 +31,7 @@ export default function StreakDetailPage() {
           setLoading(false);
         });
     }
-  }, [studentId]);
+  }, [studentId, startDate, endDate]);
 
   const getHeatmapColor = (frequency: number) => {
     if (frequency === 0) return "bg-slate-100";
@@ -56,6 +60,37 @@ export default function StreakDetailPage() {
             </h1>
             <p className="text-xs text-slate-500">Peta Intensitas Bacaan</p>
           </div>
+        </div>
+
+        {/* Date Filters */}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-end">
+          <div className="flex-1">
+            <label className="block text-[10px] font-bold text-slate-400 mb-1 ml-1">TANGGAL AWAL</label>
+            <input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 outline-none focus:border-sage-500 focus:ring-1 focus:ring-sage-500 text-slate-700 bg-slate-50 transition"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-[10px] font-bold text-slate-400 mb-1 ml-1">TANGGAL AKHIR</label>
+            <input 
+              type="date" 
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 outline-none focus:border-sage-500 focus:ring-1 focus:ring-sage-500 text-slate-700 bg-slate-50 transition"
+            />
+          </div>
+          {(startDate || endDate) && (
+            <button 
+              onClick={() => { setStartDate(""); setEndDate(""); }}
+              title="Reset Filter"
+              className="w-[38px] h-[38px] flex items-center justify-center text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 hover:text-slate-700 transition"
+            >
+              <i className="fa-solid fa-arrow-rotate-right"></i>
+            </button>
+          )}
         </div>
 
         {loading ? (
